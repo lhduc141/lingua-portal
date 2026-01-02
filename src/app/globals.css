@@ -5,44 +5,89 @@
 @tailwind utilities;
 
 @layer base {
+    *,
+    *::before,
+    *::after {
+        @apply border-border;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+
+
+}
+
+@layer base {
+    /* ===== LIGHT MODE ===== */
     :root {
+        /* Background & Foreground */
         --background: 0 0% 100%;
         --foreground: 0 0% 3.9%;
 
+        /* Card */
         --card: 0 0% 100%;
         --card-foreground: 0 0% 3.9%;
+
+        /* Popover */
         --popover: 0 0% 100%;
         --popover-foreground: 0 0% 3.9%;
 
+        /* Primary (Teal) */
         --primary: 175 72% 36%;
         --primary-foreground: 0 0% 98%;
 
+        /* Secondary */
         --secondary: 0 0% 96.1%;
         --secondary-foreground: 0 0% 9%;
 
+        /* Muted */
         --muted: 0 0% 96.1%;
         --muted-foreground: 0 0% 45.1%;
 
+        /* Accent (Teal light) */
         --accent: 175 55% 85%;
         --accent-foreground: 175 72% 20%;
 
+        /* Destructive */
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
 
+        /* Border */
         --border: 0 0% 89.8%;
         --input: 0 0% 89.8%;
-
         --ring: 175 72% 36%;
 
+        /* Radius */
         --radius: 0.5rem;
     }
 
+    /* ===== DARK MODE ===== */
     .dark {
         --background: 0 0% 3.9%;
         --foreground: 0 0% 98%;
 
         --card: 0 0% 3.9%;
         --card-foreground: 0 0% 98%;
+
         --popover: 0 0% 3.9%;
         --popover-foreground: 0 0% 98%;
 
@@ -63,18 +108,35 @@
 
         --border: 0 0% 14.9%;
         --input: 0 0% 14.9%;
-
         --ring: 175 57% 42%;
     }
 }
 
-@layer base {
-    * {
-        @apply border-border;
+@layer utilities {
+    /* ===== SCROLLBAR UTILITIES ===== */
+
+    /* Hide scrollbar */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
     }
-    body {
-        @apply bg-background text-foreground;
-        font-feature-settings: "rlig" 1, "calt" 1;
+    .scrollbar-hide {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
+    }
+
+    /* Teal scrollbar */
+    .scrollbar-teal::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .scrollbar-teal::-webkit-scrollbar-track {
+        @apply bg-muted;
+    }
+    .scrollbar-teal::-webkit-scrollbar-thumb {
+        @apply bg-primary/30 rounded-md;
+    }
+    .scrollbar-teal::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary/50;
     }
 }
 
