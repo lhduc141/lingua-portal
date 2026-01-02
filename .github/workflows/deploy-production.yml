@@ -68,12 +68,12 @@ jobs:
             sleep 10
           
             # Verify deployment
-            if docker ps | grep -q linguapanda_frontend; then
+            if docker ps | grep -q lingua_panda_portal; then
               echo "Frontend deployed successfully!"
-              docker logs --tail 50 linguapanda_frontend
+              docker logs --tail 50 lingua_panda_portal
             else
               echo "Frontend deployment failed!"
-              docker logs --tail 100 linguapanda_frontend
+              docker logs --tail 100 lingua_panda_portal
               exit 1
             fi
           
