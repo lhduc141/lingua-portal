@@ -1,0 +1,97 @@
+name: Deploy Frontend to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      # ===== CHECKOUT CODE =====
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ===== SETUP SSH =====
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # ===== DEPLOY TO VPS =====
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST << 'ENDSSH'
+            set -e
+          
+            # Navigate to project directory
+            cd /var/www/lingua-portal || exit 1
+          
+            # Pull latest code
+            echo "Pulling latest code..."
+            git pull origin main
+          
+            # Create .env file
+            echo "Creating .env file..."
+            cat > .env << EOF
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_ENABLE_DEVTOOLS=false
+          NODE_ENV=production
+          EOF
+          
+            # Build and deploy
+            echo "Building Docker image..."
+            docker compose -f docker-compose.prod.yml build --no-cache
+          
+            echo "Starting services..."
+            docker compose -f docker-compose.prod.yml up -d
+          
+            # Wait for health check
+            echo "Waiting for health check..."
+            sleep 10
+          
+            # Verify deployment
+            if docker ps | grep -q linguapanda_frontend; then
+              echo "Frontend deployed successfully!"
+              docker logs --tail 50 linguapanda_frontend
+            else
+              echo "Frontend deployment failed!"
+              docker logs --tail 100 linguapanda_frontend
+              exit 1
+            fi
+          
+            # Cleanup old images
+            echo "Cleaning up old images..."
+            docker image prune -af --filter "until=24h"
+          
+          ENDSSH
+
+      # ===== NOTIFICATION (Optional) =====
+      - name: Deployment Success
+        if: success()
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Frontend URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}"
+
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          echo "Deployment failed!"
+          echo "Check logs above for details"

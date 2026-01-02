@@ -1,0 +1,25 @@
+services:
+  frontend:
+    container_name: lingua_panda_portal
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+    - NODE_ENV=production
+    - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+    networks:
+      - lingua_panda_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  lingua_panda_network:
+    external: true
