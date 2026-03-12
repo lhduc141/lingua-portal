@@ -114,14 +114,12 @@
 
 @layer utilities {
     /* ===== SCROLLBAR UTILITIES ===== */
-
-    /* Hide scrollbar */
     .scrollbar-hide::-webkit-scrollbar {
         display: none;
     }
     .scrollbar-hide {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;     /* Firefox */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 
     /* Teal scrollbar */
@@ -137,29 +135,5 @@
     }
     .scrollbar-teal::-webkit-scrollbar-thumb:hover {
         @apply bg-primary/50;
-    }
-}
-
-@layer utilities {
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .scrollbar-teal::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    .scrollbar-teal::-webkit-scrollbar-track {
-        @apply bg-primary-50;
-    }
-    .scrollbar-teal::-webkit-scrollbar-thumb {
-        @apply bg-primary-400 rounded-full;
-    }
-    .scrollbar-teal::-webkit-scrollbar-thumb:hover {
-        @apply bg-primary-500;
     }
 }

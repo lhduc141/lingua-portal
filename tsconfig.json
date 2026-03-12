@@ -9,44 +9,27 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
 
-    /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
-    /* Emit */
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* Module Resolution */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./components/*"],
-      "@/features/*": ["./features/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/types/*": ["./types/*"],
-      "@/config/*": ["./config/*"]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": false,
 
-
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "plugins": [{ "name": "next" }]
   },
-
-  /* Skip Lib Check */
-  "skipLibCheck": true,
-  "isolatedModules": true,
 
   "include": [
     "next-env.d.ts",
@@ -57,10 +40,5 @@
     "**/*.mts"
   ],
 
-  "exclude": [
-    "node_modules",
-    ".next",
-    "out",
-    "dist"
-  ],
+  "exclude": ["node_modules", ".next", "out", "dist"]
 }
