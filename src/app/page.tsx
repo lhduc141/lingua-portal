@@ -1,5 +1,5 @@
 import Image from "next/image";
-import GetStartedButton from "../components/shared/GetStartedButton";
+import GetStartedButton from "@/components/shared/auth/GetStartedButton";
 
 export default function LandingPage() {
   return (

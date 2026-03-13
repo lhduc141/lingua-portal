@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Direction } from "node:tty";
 import { AnimatePresence, motion } from "framer-motion";
-import { SurveyPageOne } from "@/components/shared/survey";
+import { SurveyPageFinal, SurveyPageOne, SurveyPageSeconds } from "@/components";
 import { INITIAL_SURVEY_DATA, SurveyFormData } from "@/types";
 
 const TOTAL_PAGES = 3;
@@ -32,6 +32,7 @@ export default function SurveyMainPage() {
 
   const handleSubmit = () => {
     // TODO: gọi API submit survey
+    console.log("formData: ", formData);
     console.log("Submit survey");
   };
 
@@ -46,13 +47,16 @@ export default function SurveyMainPage() {
   };
 
   const pages = [
-    <SurveyPageOne key="page1" data={formData} onChange={updateForm} />,
-    // <SurveyPageSeconds key="page2" data={formData} onChange={updateForm} />,
-    // <SurveyPageFinal key="page3" data={formData} onChange={updateForm} />,
+    <SurveyPageOne key="survey-page-one" data={formData} onChange={updateForm} />,
+    <SurveyPageSeconds key="survey-page-two" data={formData} onChange={updateForm} />,
+    <SurveyPageFinal key="survey-page-three" data={formData} onChange={updateForm} />,
   ];
 
   return (
     <div className="flex h-[95vh] w-[40vw] flex-col items-center justify-between space-y-6 overflow-y-hidden rounded-2xl bg-white p-8 shadow-lg">
+      {/* Shadow overlay ở bottom */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-12 bg-gradient-to-t from-white to-transparent" />
+
       {/* Progress bar */}
       <div className="flex w-full items-center justify-between space-x-2">
         <div className="flex items-center justify-between text-xs uppercase text-[#94A3B8]">
@@ -96,7 +100,7 @@ export default function SurveyMainPage() {
         {currentPage > 1 && (
           <button
             onClick={goBack}
-            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            className="flex-1 rounded-full border border-gray-200 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
           >
             ← Back
           </button>
@@ -105,14 +109,14 @@ export default function SurveyMainPage() {
         {currentPage < TOTAL_PAGES ? (
           <button
             onClick={goNext}
-            className="flex-1 rounded-xl bg-teal-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+            className="flex-1 rounded-full bg-teal-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
           >
             Continue →
           </button>
         ) : (
           <button
             onClick={handleSubmit}
-            className="flex-1 rounded-xl bg-teal-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+            className="flex-1 rounded-full bg-teal-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
           >
             Complete ✓
           </button>
