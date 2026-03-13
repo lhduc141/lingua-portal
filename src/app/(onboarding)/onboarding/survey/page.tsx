@@ -5,6 +5,7 @@ import { Direction } from "node:tty";
 import { AnimatePresence, motion } from "framer-motion";
 import { SurveyPageFinal, SurveyPageOne, SurveyPageSeconds } from "@/components";
 import { INITIAL_SURVEY_DATA, SurveyFormData } from "@/types";
+import { useSubmitSurveyMutation } from "@/hooks";
 
 const TOTAL_PAGES = 3;
 
@@ -23,17 +24,12 @@ const variants = {
 export default function SurveyMainPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [direction, setDirection] = useState<Direction>(1);
-
   const [formData, setFormData] = useState<SurveyFormData>(INITIAL_SURVEY_DATA);
+
+  const { handleSubmit, isPending } = useSubmitSurveyMutation();
 
   const updateForm = (fields: Partial<SurveyFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
-  };
-
-  const handleSubmit = () => {
-    // TODO: gọi API submit survey
-    console.log("formData: ", formData);
-    console.log("Submit survey");
   };
 
   const goNext = () => {
@@ -51,6 +47,13 @@ export default function SurveyMainPage() {
     <SurveyPageSeconds key="survey-page-two" data={formData} onChange={updateForm} />,
     <SurveyPageFinal key="survey-page-three" data={formData} onChange={updateForm} />,
   ];
+
+  const canSubmit = () => {
+    if (!formData.primaryGoal) return false;
+    if (formData.primaryFocusSkills.length === 0) return false;
+    if (formData.plannedStudyHoursPerWeek === null) return false;
+    return true;
+  };
 
   return (
     <div className="flex h-[95vh] w-[40vw] flex-col items-center justify-between space-y-6 overflow-y-hidden rounded-2xl bg-white p-8 shadow-lg">
@@ -115,7 +118,8 @@ export default function SurveyMainPage() {
           </button>
         ) : (
           <button
-            onClick={handleSubmit}
+            onClick={() => canSubmit() && handleSubmit(formData)}
+            disabled={isPending || !canSubmit()}
             className="flex-1 rounded-full bg-teal-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
           >
             Complete ✓

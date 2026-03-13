@@ -3,7 +3,6 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
-console.log(CLIENT_ID);
 
 export function GoogleProvider({ children }: { children: React.ReactNode }) {
   return <GoogleOAuthProvider clientId={CLIENT_ID}>{children}</GoogleOAuthProvider>;

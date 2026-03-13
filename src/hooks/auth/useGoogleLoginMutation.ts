@@ -21,11 +21,9 @@ export function useGoogleLoginMutation() {
     },
     onSuccess: (user) => {
       setUser(user);
-      if (!user.surveyCompleted) {
-        router.push(ROUTES.ONBOARDING.ROOT);
-      } else {
-        router.push(ROUTES.DASHBOARD);
-      }
+      if (!user.surveyCompleted) router.push(ROUTES.ONBOARDING.ROOT);
+      else if (!user.placementCompleted) router.push(ROUTES.ONBOARDING.PLACEMENT);
+      else router.push(ROUTES.DASHBOARD);
     },
     onError: (error) => {
       console.error("Login failed:", error);

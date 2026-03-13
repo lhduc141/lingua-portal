@@ -1,26 +1,44 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import pandaLogo from "@/assets/svgs/panda-paw.svg";
 import linguaPandaAim from "@/assets/svgs/lingua-target-help.svg";
 import linguaPandaStudyPlan from "@/assets/svgs/lingua-study-plan.svg";
 import { LetStartedButton, SkipButton } from "@/components/shared";
+import { useAuthStore } from "@/stores";
+import { ROUTES } from "@/config/routes";
 
 export default function OnboardingPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.surveyCompleted && user.placementCompleted) {
+      router.replace(ROUTES.DASHBOARD);
+      return;
+    }
+    if (user.surveyCompleted && !user.placementCompleted) {
+      router.replace(ROUTES.ONBOARDING.PLACEMENT);
+      return;
+    }
+  }, [user, router]);
+
+  if (user?.surveyCompleted) return null;
+
   return (
     <div className="flex w-fit flex-col items-center justify-center space-y-6 rounded-2xl bg-white p-8 shadow-lg">
-      {/* Icon */}
       <div className="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-teal-100">
         <Image src={pandaLogo} alt="lingua panda" height={40} width={40} />
       </div>
-
-      {/* Title */}
       <div className="font-serif text-[36px]">Welcome to Lingua Panda</div>
       <div className="text-center font-sans text-body-m text-[#475569]">
         Let&apos;s personalize your learning journey to help you
         <br />
         achieve your English goals faster.
       </div>
-
-      {/* Features */}
       <div className="space-y-4">
         <div className="flex items-center justify-start space-x-4 rounded-lg bg-teal-50 p-4">
           <Image src={linguaPandaAim} alt="lingua panda" height={48} width={48} />
@@ -31,7 +49,6 @@ export default function OnboardingPage() {
             </div>
           </div>
         </div>
-
         <div className="flex items-center justify-start space-x-4 rounded-lg bg-teal-50 p-4">
           <Image src={linguaPandaStudyPlan} alt="lingua panda" height={48} width={48} />
           <div>
@@ -42,8 +59,6 @@ export default function OnboardingPage() {
           </div>
         </div>
       </div>
-
-      {/* Buttons */}
       <div className="flex w-full flex-col items-center justify-center space-y-4">
         <LetStartedButton />
         <SkipButton />
