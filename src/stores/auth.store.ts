@@ -18,6 +18,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     }),
     {
       name: "lp_auth",
+      version: 2,
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         user: state.user,

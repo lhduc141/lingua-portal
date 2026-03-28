@@ -14,8 +14,10 @@ export const ROUTES = {
 
   LEARN: {
     ROOT: "/learn",
+    PRACTICE: "/learn/practice", // ← đổi
+    LESSONS: "/learn/lessons",
     LESSON: (id: string) => `/learn/lessons/${id}`,
-    PRACTICE: (id: string) => `/learn/practice-sessions/${id}`,
+    PRACTICE_SESSION: (id: string) => `/learn/practice-sessions/${id}`,
   },
 
   ASSESSMENT: {

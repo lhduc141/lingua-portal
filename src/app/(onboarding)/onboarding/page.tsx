@@ -9,6 +9,7 @@ import linguaPandaStudyPlan from "@/assets/svgs/lingua-study-plan.svg";
 import { LetStartedButton, SkipButton } from "@/components/shared";
 import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
+import { OnboardingStatus } from "@/types";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -16,17 +17,18 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.surveyCompleted && user.placementCompleted) {
+    const surveyDone = user.surveyStatus !== OnboardingStatus.PENDING;
+    const placementDone = user.placementStatus !== OnboardingStatus.PENDING;
+
+    if (surveyDone && placementDone) {
       router.replace(ROUTES.DASHBOARD);
       return;
     }
-    if (user.surveyCompleted && !user.placementCompleted) {
+    if (surveyDone && !placementDone) {
       router.replace(ROUTES.ONBOARDING.PLACEMENT);
       return;
     }
   }, [user, router]);
-
-  if (user?.surveyCompleted) return null;
 
   return (
     <div className="flex w-fit flex-col items-center justify-center space-y-6 rounded-2xl bg-white p-8 shadow-lg">

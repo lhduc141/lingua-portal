@@ -1,5 +1,5 @@
-import Image from "next/image";
 import onboardingBg from "@/assets/svgs/pending-onboarding-bg.svg";
+import Image from "next/image";
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,9 +11,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         className="object-cover"
         priority
       />
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
-        {children}
-      </div>
+      <div className="relative z-10 flex min-h-screen items-center justify-center">{children}</div>
     </div>
   );
 }

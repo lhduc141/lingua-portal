@@ -7,6 +7,8 @@ import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, setCookie } from "@/lib";
 
+import { OnboardingStatus } from "@/types";
+
 export function useGoogleLoginMutation() {
   const router = useRouter();
   const { setUser } = useAuthStore();
@@ -21,9 +23,13 @@ export function useGoogleLoginMutation() {
     },
     onSuccess: (user) => {
       setUser(user);
-      if (!user.surveyCompleted) router.push(ROUTES.ONBOARDING.ROOT);
-      else if (!user.placementCompleted) router.push(ROUTES.ONBOARDING.PLACEMENT);
-      else router.push(ROUTES.DASHBOARD);
+      if (user.surveyStatus === OnboardingStatus.PENDING) {
+        router.push(ROUTES.ONBOARDING.ROOT);
+      } else if (user.placementStatus === OnboardingStatus.PENDING) {
+        router.push(ROUTES.ONBOARDING.PLACEMENT);
+      } else {
+        router.push(ROUTES.DASHBOARD);
+      }
     },
     onError: (error) => {
       console.error("Login failed:", error);

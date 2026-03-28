@@ -52,16 +52,26 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await axios.post(`${BASE_URL}/auth/login/refresh`, {}, { withCredentials: true });
+        const refreshToken = getCookies(REFRESH_TOKEN_COOKIE);
+        if (!refreshToken) throw new Error("No refresh token");
 
-        // Backend set cookie mới qua Set-Cookie header
-        // Retry request gốc
+        const res = await axios.post(
+          `${BASE_URL}/api/auth/refresh`,
+          { refreshToken },
+          { withCredentials: true }
+        );
+
+        const newAccessToken = res.data?.data?.accessToken;
+        if (newAccessToken) {
+          setCookie(ACCESS_TOKEN_COOKIE, newAccessToken);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+
         return api(originalRequest);
       } catch {
         deleteCookie(ACCESS_TOKEN_COOKIE);
         deleteCookie(REFRESH_TOKEN_COOKIE);
-
-        window.location.href = ROUTES.HOME; // Chuyển về LandingPage
+        window.location.href = ROUTES.HOME;
       }
     }
 

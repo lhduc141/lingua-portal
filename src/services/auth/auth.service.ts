@@ -1,4 +1,4 @@
-import { api } from "@/lib/api/client";
+import { api } from "@/lib";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 
 export async function googleLogin(idToken: string) {

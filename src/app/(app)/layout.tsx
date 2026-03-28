@@ -4,28 +4,47 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
+import { OnboardingStatus } from "@/types";
+import { Header, Sidebar } from "@/components";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isLoading } = useAuthStore();
 
   useEffect(() => {
-    if (isLoading) return; // Chờ rehydrate xong
+    if (isLoading) return;
     if (!user) {
       router.replace(ROUTES.HOME);
       return;
     }
-    if (!user.surveyCompleted) {
+
+    // Chỉ chặn nếu còn ở trạng thái pending — completed và skipped đều được vào
+    if (user.surveyStatus === OnboardingStatus.PENDING) {
       router.replace(ROUTES.ONBOARDING.SURVEY);
       return;
     }
-    if (!user.placementCompleted) {
+
+    if (user.placementStatus === OnboardingStatus.PENDING) {
       router.replace(ROUTES.ONBOARDING.PLACEMENT);
       return;
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user?.surveyCompleted || !user?.placementCompleted) return null;
+  if (
+    isLoading ||
+    user?.surveyStatus === OnboardingStatus.PENDING ||
+    user?.placementStatus === OnboardingStatus.PENDING
+  ) {
+    return null;
+  }
 
-  return <>{children}</>;
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fbfd]">
+      <Sidebar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto px-8 py-6">{children}</main>
+      </div>
+    </div>
+  );
 }

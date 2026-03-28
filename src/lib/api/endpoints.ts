@@ -1,66 +1,79 @@
+// Base Roots
+const AUTH_ROOT = "/auth";
+const ONBOARDING_ROOT = "/onboarding";
+const PLACEMENT_ROOT = "/placement";
+const LEARN_ROOT = "/learn";
+const ASSESSMENT_ROOT = "/assessments";
+const PLAN_ROOT = "/learning-plan";
+const DASHBOARD_ROOT = "/dashboard";
+const DICTIONARY_ROOT = "/dictionary";
+const VOCABULARY_ROOT = "/vocabulary";
+
+const SKILLS_ROOT = "/skills";
+const LESSONS_ROOT = "/lessons";
+const PRACTICE_ROOT = "/practice-sessions";
+
+// Endpoints
 export const ENDPOINTS = {
   AUTH: {
-    GOOGLE: "/auth/google",
-    REFRESH: "/auth/refresh",
-    LOGOUT: "/auth/logout",
-    ME: "/auth/me",
+    GOOGLE: `${AUTH_ROOT}/google`,
+    REFRESH: `${AUTH_ROOT}/refresh`,
+    LOGOUT: `${AUTH_ROOT}/logout`,
+    ME: `${AUTH_ROOT}/me`,
   },
 
   ONBOARDING: {
-    QUESTIONS: "/onboarding/questions",
-    SUBMIT_SURVEY: "/onboarding/survey",
-    SURVEY_HISTORY: "/onboarding/survey/history",
+    SUBMIT_SURVEY: `${ONBOARDING_ROOT}/survey`,
+    SURVEY_HISTORY: `${ONBOARDING_ROOT}/survey/history`,
+    SKIP: `${ONBOARDING_ROOT}/skip`,
   },
 
   PLACEMENT: {
-    START: "/placement/start",
-    ANSWER: "/placement/answers",
-    COMPLETE: "/placement/complete",
-    RESULT: "/placement/result",
+    START: `${PLACEMENT_ROOT}/start`,
+    ANSWER: `${PLACEMENT_ROOT}/answers`,
+    COMPLETE: `${PLACEMENT_ROOT}/complete`,
+    RESULT: `${PLACEMENT_ROOT}/result`,
+    SKIP: `${PLACEMENT_ROOT}/skip`,
+    CURRENT: `${PLACEMENT_ROOT}/current`,
   },
 
   LEARN: {
-    SKILLS: "/learn/skills",
-    LESSONS: "/learn/lessons",
-    LESSON_DETAIL: (id: string) => `/learn/lessons/${id}`,
-    PRACTICE_SESSIONS: "/learn/practice-sessions",
-    PRACTICE_SESSION_DETAIL: (id: string) => `/learn/practice-sessions/${id}`,
+    SKILLS: SKILLS_ROOT,
+    LESSONS: LESSONS_ROOT,
+    LESSON_DETAIL: (id: string) => `${LESSONS_ROOT}/${id}`,
+    PRACTICE_SESSIONS: PRACTICE_ROOT,
+    PRACTICE_SESSION_DETAIL: (id: string) => `${PRACTICE_ROOT}/${id}`,
   },
 
   ASSESSMENT: {
-    START_LESSON: "/assessments/lesson/start",
-    START_PRACTICE: "/assessments/practice/start",
-    DETAIL: (id: string) => `/assessments/${id}`,
-    COMPLETE: (id: string) => `/assessments/${id}/complete`,
-    RESULT: (id: string) => `/assessments/${id}/result`,
-    HISTORY: "/assessments/history",
+    START_LESSON: `${ASSESSMENT_ROOT}/lesson/start`,
+    START_PRACTICE: `${ASSESSMENT_ROOT}/question-set/start`, // question-set không phải practice
+    SUBMIT_ANSWER: (id: string) => `${ASSESSMENT_ROOT}/${id}/answers`, // thêm mới
+    COMPLETE: (id: string) => `${ASSESSMENT_ROOT}/${id}/complete`,
+    RESULT: (id: string) => `${ASSESSMENT_ROOT}/${id}/result`,
+    HISTORY: `${ASSESSMENT_ROOT}/history`,
   },
 
   PLAN: {
-    CURRENT: "/learning-plan/current",
-    GENERATE: "/learning-plan/generate",
-    HISTORY: "/learning-plan/history",
-    COMPLETE_ITEM: (id: string) => `/learning-plan/items/${id}/complete`,
-    SUBMIT_FEEDBACK: (id: string) => `/learning-plan/items/${id}/feedback`,
-    WEEKLY_REVIEW: "/learning-plan/weekly-review",
+    CURRENT: `${PLAN_ROOT}/current`,
+    GENERATE: `${PLAN_ROOT}/generate`,
+    HISTORY: `${PLAN_ROOT}/history`,
+    UPDATE_ITEM: (id: string) => `${PLAN_ROOT}/items/${id}`, // đổi từ COMPLETE_ITEM
+    REVIEW_FEEDBACK: (id: string) => `${PLAN_ROOT}/review/${id}/feedback`, // đổi path
+    RESET: `${PLAN_ROOT}/reset`,
   },
 
   DASHBOARD: {
-    OVERVIEW: "/dashboard/overview",
-    SKILL_PROGRESS: "/dashboard/skill-progress",
-    ACTIVITY_HEATMAP: "/dashboard/activity-heatmap",
-    SCORE_TRENDS: "/dashboard/score-trends",
-  },
-
-  DICTIONARY: {
-    LOOKUP: "/dictionary/lookup",
-    DETAIL: (id: string) => `/dictionary/${id}`,
-    COLLOCATIONS: (id: string) => `/dictionary/${id}/collocations`,
+    OVERVIEW: `${DASHBOARD_ROOT}/overview`,
+    STREAK: `${DASHBOARD_ROOT}/streak`,
+    STUDY_TIME: `${DASHBOARD_ROOT}/study-time`,
+    SKILL_PROGRESS: (skillName: string) => `${DASHBOARD_ROOT}/skills/${skillName}/progress`,
   },
 
   VOCABULARY: {
-    LIST: "/vocabulary",
-    SAVE: "/vocabulary",
-    DELETE: (id: string) => `/vocabulary/${id}`,
+    SAVE: `${VOCABULARY_ROOT}/save`,
+    LIST: VOCABULARY_ROOT,
+    UPDATE: (id: string) => `${VOCABULARY_ROOT}/${id}`,
+    DELETE: (id: string) => `${VOCABULARY_ROOT}/${id}`,
   },
 } as const;

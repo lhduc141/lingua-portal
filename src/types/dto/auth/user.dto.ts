@@ -1,4 +1,4 @@
-import type { CefrLevel } from "@/types";
+import type { CefrLevel, OnboardingStatus } from "@/types";
 
 export type User = {
   userId: string;
@@ -6,8 +6,8 @@ export type User = {
   displayName: string;
   avatarUrl: string | null;
   cefrLevel: CefrLevel | null;
-  surveyCompleted: boolean;
-  placementCompleted: boolean;
+  surveyStatus: OnboardingStatus;
+  placementStatus: OnboardingStatus;
   createdAt: string;
 };
 
