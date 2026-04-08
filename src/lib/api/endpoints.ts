@@ -3,11 +3,11 @@ const AUTH_ROOT = "/auth";
 const ONBOARDING_ROOT = "/onboarding";
 const PLACEMENT_ROOT = "/placement";
 const LEARN_ROOT = "/learn";
-const ASSESSMENT_ROOT = "/assessments";
 const PLAN_ROOT = "/learning-plan";
 const DASHBOARD_ROOT = "/dashboard";
 const DICTIONARY_ROOT = "/dictionary";
 const VOCABULARY_ROOT = "/vocabulary";
+const EXERCISE_ROOT = "/assessments";
 
 const SKILLS_ROOT = "/skills";
 const LESSONS_ROOT = "/lessons";
@@ -45,13 +45,13 @@ export const ENDPOINTS = {
     PRACTICE_SESSION_DETAIL: (id: string) => `${PRACTICE_ROOT}/${id}`,
   },
 
-  ASSESSMENT: {
-    START_LESSON: `${ASSESSMENT_ROOT}/lesson/start`,
-    START_PRACTICE: `${ASSESSMENT_ROOT}/question-set/start`, // question-set không phải practice
-    SUBMIT_ANSWER: (id: string) => `${ASSESSMENT_ROOT}/${id}/answers`, // thêm mới
-    COMPLETE: (id: string) => `${ASSESSMENT_ROOT}/${id}/complete`,
-    RESULT: (id: string) => `${ASSESSMENT_ROOT}/${id}/result`,
-    HISTORY: `${ASSESSMENT_ROOT}/history`,
+  EXERCISE: {
+    START_LESSON: `${EXERCISE_ROOT}/lesson/start`,
+    START_PRACTICE: `${EXERCISE_ROOT}/question-set/start`,
+    SUBMIT_ANSWER: (id: string) => `${EXERCISE_ROOT}/${id}/answers`,
+    COMPLETE: (id: string) => `${EXERCISE_ROOT}/${id}/complete`,
+    RESULT: (id: string) => `${EXERCISE_ROOT}/${id}/result`,
+    HISTORY: `${EXERCISE_ROOT}/history`,
   },
 
   PLAN: {

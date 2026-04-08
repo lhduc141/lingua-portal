@@ -1,6 +1,6 @@
 "use client";
 
-import { PlacementIntroView, PlacementTestView } from "@/components";
+import { PlacementIntroView, PlacementTestView } from "./_components";
 import { ROUTES } from "@/config";
 import { SESSION_KEYS } from "@/lib";
 import { getCurrentSession, skipPlacement, startPlacement, submitAnswer } from "@/services";

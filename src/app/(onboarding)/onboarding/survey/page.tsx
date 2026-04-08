@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Direction } from "node:tty";
 import { AnimatePresence, motion } from "framer-motion";
-import { SurveyPageFinal, SurveyPageOne, SurveyPageSeconds } from "@/components";
+import { SurveyPageFinal, SurveyPageOne, SurveyPageSeconds } from "./_components";
 import { INITIAL_SURVEY_DATA, SurveyFormData } from "@/types";
 import { useSubmitSurveyMutation } from "@/hooks";
 

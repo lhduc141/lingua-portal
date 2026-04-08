@@ -14,16 +14,16 @@ export const ROUTES = {
 
   LEARN: {
     ROOT: "/learn",
-    PRACTICE: "/learn/practice", // ← đổi
     LESSONS: "/learn/lessons",
+    PRACTICE: "/learn/practice-sessions",
     LESSON: (id: string) => `/learn/lessons/${id}`,
     PRACTICE_SESSION: (id: string) => `/learn/practice-sessions/${id}`,
   },
 
-  ASSESSMENT: {
-    DETAIL: (id: string) => `/assessments/${id}`,
-    RESULT: (id: string) => `/assessments/${id}/result`,
-    HISTORY: "/assessments/history",
+  EXERCISE: {
+    DETAIL: (id: string) => `/exercises/${id}`,
+    RESULT: (id: string) => `/exercises/${id}/result`,
+    HISTORY: "/exercises/history",
   },
 
   DICTIONARY: {

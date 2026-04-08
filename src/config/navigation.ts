@@ -32,14 +32,14 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "LEARNING",
     items: [
-      { label: "Practice", href: ROUTES.LEARN.PRACTICE, icon: BookOpen },
       { label: "Lessons", href: ROUTES.LEARN.LESSONS, icon: GraduationCap },
+      { label: "Practice", href: ROUTES.LEARN.PRACTICE, icon: BookOpen },
     ],
   },
   {
     label: "RESOURCE",
     items: [
-      { label: "Progress", href: ROUTES.ASSESSMENT.HISTORY, icon: BarChart2 },
+      { label: "Progress", href: ROUTES.EXERCISE.HISTORY, icon: BarChart2 },
       { label: "Dictionary", href: ROUTES.DICTIONARY.ROOT, icon: BookMarked },
     ],
   },

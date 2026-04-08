@@ -20,15 +20,18 @@ export function Sidebar() {
   const isActive = (href: string) => {
     const current = pendingHref ?? pathname;
     if (current === href) return true;
-    if (href === ROUTES.LEARN.ROOT) return current === ROUTES.LEARN.ROOT;
+    // if (href === ROUTES.LEARN.ROOT) return current === ROUTES.LEARN.ROOT;
+
     if (href === ROUTES.DASHBOARD) return current === ROUTES.DASHBOARD;
     return current.startsWith(href);
   };
+
   const handleNavigate = (href: string) => {
     if (pathname === href) return;
     setPendingHref(href);
     router.push(href);
   };
+
   const handleLogout = () => {
     clearUser();
     router.replace(ROUTES.LOGIN);
@@ -37,6 +40,7 @@ export function Sidebar() {
   useEffect(() => {
     setPendingHref(null);
   }, [pathname]);
+
   return (
     <aside className="flex h-screen w-[240px] flex-col justify-between border-r border-gray-100 bg-white px-[22px] py-5 shadow-[0px_16px_32px_0px_rgba(12,12,13,0.4)]">
       <div className="flex flex-col gap-[72px]">

@@ -6,7 +6,7 @@ import Image from "next/image";
 import pandaLogo from "@/assets/svgs/panda-paw.svg";
 import linguaPandaAim from "@/assets/svgs/lingua-target-help.svg";
 import linguaPandaStudyPlan from "@/assets/svgs/lingua-study-plan.svg";
-import { LetStartedButton, SkipButton } from "@/components/shared";
+import { LetStartedButton, SkipButton } from "./_components";
 import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
 import { OnboardingStatus } from "@/types";
