@@ -6,3 +6,4 @@ export * from "./dashboard";
 export * from "./plan";
 export * from "./learn";
 export * from "./exercise";
+export * from './dictionary'

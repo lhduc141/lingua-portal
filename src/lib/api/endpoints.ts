@@ -76,4 +76,9 @@ export const ENDPOINTS = {
     UPDATE: (id: string) => `${VOCABULARY_ROOT}/${id}`,
     DELETE: (id: string) => `${VOCABULARY_ROOT}/${id}`,
   },
+
+  DICTIONARY: {
+    LOOKUP: `${DICTIONARY_ROOT}/lookup`,
+    COLLOCATIONS: (entryId: string) => `${DICTIONARY_ROOT}/${entryId}/collocations`,
+  },
 } as const;
