@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCompleteExercise, useSubmitAnswer } from "@/hooks/exercise";
 import type { ExerciseStartDto } from "@/types/dto/exercise";
 import { ROUTES } from "@/config";
+import { PawSpinner } from "@/components/shared/spinner";
 import {
   ExerciseFooter,
   ExerciseHeader,
@@ -27,11 +28,11 @@ export default function ExercisePage() {
   const [exerciseData, setExerciseData] = useState<ExerciseStartDto | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, UserAnswer>>(new Map());
+  const [isSubmittingAll, setIsSubmittingAll] = useState(false);
 
   const submitAnswerMutation = useSubmitAnswer();
   const completeExerciseMutation = useCompleteExercise();
 
-  // Load exercise data từ sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem(`exercise_${exerciseId}`);
     if (stored)
@@ -46,11 +47,10 @@ export default function ExercisePage() {
     else router.push(ROUTES.LEARN.LESSONS);
   }, [exerciseId, router]);
 
-  // Early return nếu chưa load xong
   if (!exerciseData) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="text-body-l text-gray-500">Loading exercise...</div>
+        <PawSpinner size="md" />
       </div>
     );
   }
@@ -68,78 +68,43 @@ export default function ExercisePage() {
 
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
-  // Handler: Lưu answer vào state
   const handleAnswerChange = (questionId: string, answer: UserAnswer) => {
     setAnswers((prev) => new Map(prev).set(questionId, answer));
   };
 
-  // Handler: Submit answer hiện tại → next question
-  const handleNext = async () => {
-    const currentAnswer = answers.get(currentQuestion.questionId);
-
-    // Submit nếu có answer
-    if (currentAnswer) {
-      try {
-        await submitAnswerMutation.mutateAsync({
-          exerciseId,
-          dto: {
-            questionId: currentQuestion.questionId,
-            answer: currentAnswer,
-          },
-        });
-      } catch (error) {
-        console.error("Failed to submit answer:", error);
-        // Tiếp tục next dù submit fail (có thể retry sau)
-      }
-    }
-
-    // Next question
-    if (!isLastQuestion) {
+  const handleNext = () => {
+    if (!isLastQuestion)
       setCurrentQuestionIndex((prev) => prev + 1);
-    }
   };
 
-  // Handler: Previous question
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
+    if (currentQuestionIndex > 0)
       setCurrentQuestionIndex((prev) => prev - 1);
-    }
   };
 
-  // Handler: Complete exercise
   const handleComplete = async () => {
-    // Submit current answer nếu chưa submit
-    const currentAnswer = answers.get(currentQuestion.questionId);
-    if (currentAnswer) {
-      try {
+    setIsSubmittingAll(true);
+    try {
+      for (const [questionId, answer] of answers.entries()) {
         await submitAnswerMutation.mutateAsync({
           exerciseId,
-          dto: {
-            questionId: currentQuestion.questionId,
-            answer: currentAnswer,
-          },
+          dto: { questionId, answer },
         });
-      } catch (error) {
-        console.error("Failed to submit final answer:", error);
       }
-    }
 
-    // Complete exercise
-    try {
       await completeExerciseMutation.mutateAsync(exerciseId);
-      // Navigate to result
+
       router.push(ROUTES.EXERCISE.RESULT(exerciseId));
     } catch (error) {
       console.error("Failed to complete exercise:", error);
+      setIsSubmittingAll(false);
     }
   };
 
-  // Handler: Navigate to specific question
   const handleNavigateToQuestion = (index: number) => {
     setCurrentQuestionIndex(index);
   };
 
-  // Handler: Exit
   const handleExit = () => {
     if (confirm("Are you sure you want to exit? Your progress will be lost.")) {
       sessionStorage.removeItem(`exercise_${exerciseId}`);
@@ -147,7 +112,6 @@ export default function ExercisePage() {
     }
   };
 
-  // Render question dựa vào type
   const renderQuestion = () => {
     const currentAnswer = answers.get(currentQuestion.questionId);
 
@@ -172,6 +136,7 @@ export default function ExercisePage() {
             onAnswerChange={(text) =>
               handleAnswerChange(currentQuestion.questionId, { textAnswer: text })
             }
+            passage={currentQuestion.passage ?? null}
           />
         );
 
@@ -203,7 +168,18 @@ export default function ExercisePage() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
+    <div className="relative flex h-screen flex-col bg-gray-50">
+      {/* Loading overlay khi đang nộp bài */}
+      {isSubmittingAll && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <PawSpinner size="lg" />
+          <p className="mt-4 text-body-l font-medium text-teal-700">
+            Submitting your answers...
+          </p>
+          <p className="mt-1 text-body-m text-gray-500">Please don&apos;t close this page</p>
+        </div>
+      )}
+
       {/* Header */}
       <ExerciseHeader
         title={exerciseData.lesson?.title ?? exerciseData.questionSet?.title ?? "Exercise"}
@@ -227,7 +203,7 @@ export default function ExercisePage() {
         onPrevious={handlePrevious}
         onNext={handleNext}
         onComplete={handleComplete}
-        isSubmitting={submitAnswerMutation.isPending || completeExerciseMutation.isPending}
+        isSubmitting={isSubmittingAll}
       />
     </div>
   );

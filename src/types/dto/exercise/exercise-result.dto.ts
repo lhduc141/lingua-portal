@@ -10,20 +10,33 @@ export type ExerciseResultDto = {
   answers: ExerciseAnswerResultDto[];
 };
 
+export type CorrectionItem = {
+  original: string;
+  corrected: string;
+  rule?: string;
+};
+
 export type ExerciseAnswerResultDto = {
   questionId: string;
   questionType: string;
+  stemText: string | null;
   isCorrect: boolean | null;
   earnedScore: number | null;
   maxScore: number;
+  gradingStatus: string;
+
   userAnswer: {
     optionIds?: string[];
+    optionTexts?: string[];
     textAnswer?: string;
   } | null;
+
   correctAnswer: {
     optionIds?: string[];
+    optionTexts?: string[];
     textAnswers?: string[];
   } | null;
+
   aiFeedback: {
     overallScore: number;
     dimensions: Array<{
@@ -31,7 +44,7 @@ export type ExerciseAnswerResultDto = {
       score: number;
       feedback: string;
     }>;
-    corrections: string[];
+    corrections: CorrectionItem[];
     suggestions: string[];
   } | null;
 };

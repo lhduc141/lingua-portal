@@ -1,4 +1,4 @@
-import { BookOpen, Clock, FileText, Mic, PenLine } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, FileText, Mic, PenLine } from "lucide-react";
 import { cn } from "@/lib";
 import type { LessonListItemDto } from "@/types/dto/learn";
 
@@ -28,13 +28,39 @@ interface LessonCardProps {
 export function LessonCard({ lesson, onClick }: LessonCardProps) {
   const skill = SKILL_STYLE[lesson.skillName] ?? SKILL_STYLE["reading"]!;
 
+  // ← EXTRACT USER PROGRESS DATA
+  const isCompleted = lesson.userProgress?.isCompleted ?? false;
+  const bestScore = lesson.userProgress?.bestScore;
+  const attemptCount = lesson.userProgress?.attemptCount ?? 0;
+  const lastAttemptAt = lesson.userProgress?.lastAttemptAt;
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   return (
     <div
       onClick={onClick}
       className="flex cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-teal-300 hover:shadow-md"
     >
       <div className={cn("h-1.5 w-full", skill.bar)} />
-      <div className="flex flex-col gap-3 p-5">
+      <div className="relative flex flex-col gap-3 p-5">
+        {/* ← COMPLETION BADGE (TOP-RIGHT) */}
+        {isCompleted && (
+          <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1">
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+            <span className="text-[11px] font-bold text-green-600">
+              {bestScore !== null && bestScore !== undefined ? `${Math.round(bestScore)}%` : "Done"}
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
@@ -70,9 +96,24 @@ export function LessonCard({ lesson, onClick }: LessonCardProps) {
           </span>
         </div>
 
+        {/* ← PROGRESS INFO (CHỈ SHOW KHI COMPLETED) */}
+        {isCompleted && (
+          <div className="rounded-lg bg-green-50 px-3 py-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-slate-600">
+                {attemptCount} {attemptCount === 1 ? "attempt" : "attempts"}
+              </span>
+              {lastAttemptAt && (
+                <span className="text-slate-500">Last: {formatDate(lastAttemptAt)}</span>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-end border-t border-slate-100 pt-3">
           <button className="rounded-lg border border-teal-600 px-4 py-1.5 text-[12px] font-bold text-teal-600 hover:bg-teal-50">
-            Start →
+            {/* ← DYNAMIC BUTTON TEXT */}
+            {isCompleted ? "Review" : "Start"} →
           </button>
         </div>
       </div>
