@@ -81,4 +81,12 @@ export const ENDPOINTS = {
     LOOKUP: `${DICTIONARY_ROOT}/lookup`,
     COLLOCATIONS: (entryId: string) => `${DICTIONARY_ROOT}/${entryId}/collocations`,
   },
+
+  ADMIN: {
+    STATS: "/admin/stats",
+    USERS: "/admin/users",
+    LESSONS: "/admin/lessons",
+    UPDATE_LESSON_STATUS: (id: string) => `/admin/lessons/${id}/status`,
+    PLACEMENT_SESSIONS: "/admin/placement-sessions",
+  },
 } as const;

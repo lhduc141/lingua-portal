@@ -33,4 +33,10 @@ export const ROUTES = {
 
   VOCABULARY: "/vocabulary",
   PROFILE: "/profile",
+
+  ADMIN: {
+    ROOT: "/admin",
+    USERS: "/admin/users",
+    PLACEMENT: "/admin/placement",
+  },
 } as const;

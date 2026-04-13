@@ -5,6 +5,7 @@ export type User = {
   email: string;
   displayName: string;
   avatarUrl: string | null;
+  isAdmin: boolean;
   cefrLevel: CefrLevel | null;
   surveyStatus: OnboardingStatus;
   placementStatus: OnboardingStatus;

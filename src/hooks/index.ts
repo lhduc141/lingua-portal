@@ -5,3 +5,5 @@ export * from "./plan";
 export * from "./learn";
 
 export * from './dictionary'
+
+export * from './admin'
