@@ -120,6 +120,7 @@ export default function ExercisePage() {
       case "mcq_multi":
         return (
           <ReadingQuestion
+            key={currentQuestion.questionId}
             question={currentQuestion}
             selectedOptionIds={currentAnswer?.optionIds ?? []}
             onAnswerChange={(optionIds) =>
@@ -131,6 +132,7 @@ export default function ExercisePage() {
       case "fill_blank":
         return (
           <FillBlankQuestion
+            key={currentQuestion.questionId}
             question={currentQuestion}
             textAnswer={currentAnswer?.textAnswer ?? ""}
             onAnswerChange={(text) =>
@@ -143,6 +145,7 @@ export default function ExercisePage() {
       case "essay":
         return (
           <WritingQuestion
+            key={currentQuestion.questionId}
             question={currentQuestion}
             textAnswer={currentAnswer?.textAnswer ?? ""}
             onAnswerChange={(text) =>
@@ -154,6 +157,7 @@ export default function ExercisePage() {
       case "speaking":
         return (
           <SpeakingQuestion
+            key={currentQuestion.questionId}
             question={currentQuestion}
             textAnswer={currentAnswer?.textAnswer ?? ""}
             onAnswerChange={(text) =>

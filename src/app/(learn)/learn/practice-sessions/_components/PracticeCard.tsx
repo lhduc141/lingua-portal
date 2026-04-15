@@ -23,15 +23,19 @@ const SKILL_STYLE: Record<string, { bar: string; badge: string; icon: React.Reac
 interface PracticeCardProps {
   session: QuestionSetListItemDto;
   onClick: () => void;
+  isStarting?: boolean;
 }
 
-export function PracticeCard({ session, onClick }: PracticeCardProps) {
+export function PracticeCard({ session, onClick, isStarting = false }: PracticeCardProps) {
   const skill = SKILL_STYLE[session.skillName] ?? SKILL_STYLE["reading"]!;
 
   return (
     <div
-      onClick={onClick}
-      className="flex cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:border-teal-300 hover:shadow-md"
+      onClick={isStarting ? undefined : onClick}
+      className={cn(
+        "flex cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all",
+        isStarting ? "cursor-not-allowed opacity-60" : "hover:border-teal-300 hover:shadow-md"
+      )}
     >
       <div className={cn("h-1.5 w-full", skill.bar)} />
       <div className="flex flex-col gap-3 p-5">
@@ -71,8 +75,11 @@ export function PracticeCard({ session, onClick }: PracticeCardProps) {
         </div>
 
         <div className="flex items-center justify-end border-t border-slate-100 pt-3">
-          <button className="rounded-lg border border-teal-600 px-4 py-1.5 text-[12px] font-bold text-teal-600 hover:bg-teal-50">
-            Start →
+          <button
+            disabled={isStarting}
+            className="rounded-lg border border-teal-600 px-4 py-1.5 text-[12px] font-bold text-teal-600 hover:bg-teal-50 disabled:opacity-50"
+          >
+            {isStarting ? "Starting..." : "Start →"}
           </button>
         </div>
       </div>

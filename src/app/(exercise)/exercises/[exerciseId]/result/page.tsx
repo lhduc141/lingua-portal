@@ -57,13 +57,13 @@ export default function ExerciseResultPage() {
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
           <AlertDescription>
-            Một số câu hỏi vẫn đang được chấm điểm. Kết quả sẽ tự động cập nhật.
+            Some questions are still being graded by AI. Results will update automatically.
           </AlertDescription>
         </Alert>
       )}
 
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Chi tiết từng câu hỏi</h2>
+        <h2 className="text-xl font-semibold">Question Details</h2>
         {result.answers.map((answer, index) => (
           <QuestionResultCard key={answer.questionId} answer={answer} index={index} />
         ))}

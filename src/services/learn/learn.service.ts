@@ -3,6 +3,7 @@ import { api, ENDPOINTS } from "@/lib";
 export type LearnListParams = {
   skill?: string;
   cefrLevel?: string;
+  keyword?:string;
   pageIndex?: number;
   pageSize?: number;
 };

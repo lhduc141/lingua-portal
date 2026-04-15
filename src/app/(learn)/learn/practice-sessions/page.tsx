@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config";
 import { usePracticeSessions } from "@/hooks/learn";
 import { PawSpinner } from "@/components/shared/spinner";
-import { LearnFilters, PracticeCard, LearnPagination, LearnStatsBar } from "./_components";
+import { LearnFilters, LearnPagination, PracticeCard } from "./_components";
 
 const PAGE_SIZE = 9;
 
@@ -42,8 +42,6 @@ export default function PracticeSessionsPage() {
         onSkillChange={(v) => handleFilterChange("skill", v)}
         onCefrChange={(v) => handleFilterChange("cefr", v)}
       />
-
-      <LearnStatsBar count={data?.count ?? 0} label="practice sessions" />
 
       {isLoading ? (
         <div className="flex justify-center py-16">

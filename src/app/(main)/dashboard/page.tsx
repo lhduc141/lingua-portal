@@ -1,7 +1,9 @@
 "use client";
 
 import { useDashboardOverview, useDashboardStreak } from "@/hooks";
+import { useCurrentPlan } from "@/hooks/plan";
 import { useRouter } from "next/navigation";
+import type { PlanTaskDto } from "@/types";
 import { HeatmapDay, WEEK_DAYS } from "@/types";
 import {
   BarChart2,
@@ -17,19 +19,39 @@ import { cn } from "@/lib";
 import { PawSpinner } from "@/components";
 import { ActivityItem, HeatCell, SkillBar, StatCard } from "./_components";
 
+function getTodayTasks(days: { date: string; tasks: PlanTaskDto[] }[] | undefined): PlanTaskDto[] {
+  if (!days) return [];
+  const today = new Date().toISOString().slice(0, 10);
+  const todayDay = days.find((d) => d.date === today);
+  return (todayDay?.tasks ?? []).filter(
+    (t) => t.status === "pending" || t.status === "in_progress"
+  );
+}
+
+function getTaskRoute(task: PlanTaskDto): string {
+  if (task.refType === "lesson" && task.refId) return ROUTES.LEARN.LESSON(task.refId);
+  if (task.refType === "question_set" && task.refId)
+    return ROUTES.LEARN.PRACTICE_SESSION(task.refId);
+  return ROUTES.PLAN;
+}
+
 export default function DashboardPage() {
   const { data, isLoading, error } = useDashboardOverview();
   const { data: streakData } = useDashboardStreak();
+  const { data: planData } = useCurrentPlan();
 
   const router = useRouter();
+
+  if (isLoading) return <PawSpinner fullScreen />;
 
   if (error || !data) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-slate-400">
-        Không thể tải dashboard. Vui lòng thử lại.
+        Failed to load dashboard. Please try again.
       </div>
     );
   }
+
   const {
     cefrLevel,
     planProgress,
@@ -53,7 +75,9 @@ export default function DashboardPage() {
 
   const planPct = planProgress?.percentage ?? 0;
 
-  if (error) if (isLoading) return <PawSpinner fullScreen />;
+  // ── Today's Tasks from plan ──────────────────────────────────────
+  const todayTasks = getTodayTasks(planData?.days);
+
   return (
     <div className="space-y-5">
       <div className="flex gap-4">
@@ -104,7 +128,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex gap-5">
-        {/* Today's Tasks */}
+        {/* ── Today's Tasks ─────────────────────────────────────────── */}
         <div className="flex-1 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-serif text-[24px] text-gray-900">Today&apos;s Tasks</h2>
@@ -116,52 +140,57 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {recentActivity.length > 0 ? (
+          {todayTasks.length > 0 ? (
             <div className="space-y-2">
-              {recentActivity.slice(0, 3).map((item) => (
-                <div
-                  key={`task-${item.type}-${item.date}-${item.title}`}
-                  className="flex items-center gap-5 rounded-lg border border-black/50 bg-white px-5 py-4"
+              {todayTasks.slice(0, 3).map((task) => (
+                <button
+                  key={task.itemId}
+                  onClick={() => router.push(getTaskRoute(task))}
+                  className="flex w-full items-center gap-5 rounded-lg border border-black/50 bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50"
                 >
                   <div
                     className={cn(
                       "h-6 w-6 shrink-0 rounded-full border",
-                      item.status === "scored" || item.status === "completed"
-                        ? "border-teal-600 bg-teal-600"
-                        : "border-black/50"
+                      task.status === "in_progress"
+                        ? "border-teal-600 bg-teal-100"
+                        : "border-black/30"
                     )}
                   />
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      {item.skillName && (
+                      {task.skillName && (
                         <span
                           className={cn(
                             "rounded-full px-2 py-0.5 text-[8px] font-bold uppercase",
-                            item.skillName === "reading" && "bg-blue-100 text-blue-600",
-                            item.skillName === "writing" && "bg-purple-100 text-purple-600",
-                            item.skillName === "speaking" && "bg-orange-100 text-orange-600"
+                            task.skillName === "reading" && "bg-blue-100 text-blue-600",
+                            task.skillName === "writing" && "bg-purple-100 text-purple-600",
+                            task.skillName === "speaking" && "bg-orange-100 text-orange-600"
                           )}
                         >
-                          {item.skillName}
+                          {task.skillName}
                         </span>
                       )}
-                      <span className="flex items-center gap-1 text-[8px] font-bold text-slate-400">
-                        <Clock className="h-3 w-3" /> 15 mins
-                      </span>
+                      {task.estimatedMinutes && (
+                        <span className="flex items-center gap-1 text-[8px] font-bold text-slate-400">
+                          <Clock className="h-3 w-3" /> {task.estimatedMinutes} mins
+                        </span>
+                      )}
                     </div>
-                    <p className="font-serif text-[15px] text-gray-900">{item.title}</p>
+                    <p className="font-serif text-[15px] text-gray-900">{task.title}</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-slate-400">
-              No tasks today
+              {planData
+                ? "No pending tasks for today 🎉"
+                : "Generate a learning plan to get started"}
             </div>
           )}
         </div>
 
-        {/* Skills Performance */}
+        {/* ── Skills Performance ────────────────────────────────────── */}
         <div className="flex w-[360px] shrink-0 flex-col gap-6 rounded-lg border border-black/50 bg-white px-5 py-5">
           <div className="flex items-center gap-2">
             <BarChart2 className="h-5 w-5 text-slate-400" />
@@ -175,7 +204,7 @@ export default function DashboardPage() {
           </div>
 
           <button
-            onClick={() => router.push(ROUTES.ASSESSMENT.HISTORY)}
+            onClick={() => router.push(ROUTES.EXERCISE.HISTORY)} // ← fix: ASSESSMENT → EXERCISE
             className="w-full rounded-xl border border-black/50 py-2 text-[14px] text-slate-500 hover:bg-gray-50"
           >
             View Detailed Report
@@ -233,7 +262,6 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Recent Activity */}
         <div className="flex w-[360px] shrink-0 flex-col gap-3">
           <h3 className="font-serif text-[18px] text-gray-900">Recent Activity</h3>
           <div className="flex flex-col gap-4 rounded-lg border border-black/50 bg-white p-4">
@@ -253,7 +281,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Study Consistency Heatmap ─────────────────────────────────── */}
       <div className="rounded-lg border border-black/50 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">

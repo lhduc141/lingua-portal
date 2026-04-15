@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Mic, Square, Play, RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Mic, RefreshCw, Square } from "lucide-react";
 import type { AssessmentQuestionDto } from "@/types/dto/exercise";
-import { cn } from "@/lib";
 
 interface SpeakingQuestionProps {
   question: AssessmentQuestionDto;
@@ -13,11 +12,7 @@ interface SpeakingQuestionProps {
 
 type RecordingState = "ready" | "recording" | "recorded";
 
-export function SpeakingQuestion({
-  question,
-  textAnswer,
-  onAnswerChange,
-}: SpeakingQuestionProps) {
+export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: SpeakingQuestionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("ready");
   const [transcript, setTranscript] = useState(textAnswer);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -120,7 +115,8 @@ export function SpeakingQuestion({
     }
 
     // Save transcript to answer
-    onAnswerChange(transcript);
+    // onAnswerChange(transcript);
+    recognitionRef.current.stop();
     setRecordingState("recorded");
   };
 
@@ -145,7 +141,7 @@ export function SpeakingQuestion({
       <div className="rounded-lg border border-gray-200 bg-white p-8">
         {/* Question */}
         <div className="mb-6">
-          <h3 className="mb-3 text-h2 font-serif text-gray-900">Speaking Task</h3>
+          <h3 className="mb-3 font-serif text-h2 text-gray-900">Speaking Task</h3>
           <p className="text-body-l text-gray-700">{question.stemText}</p>
         </div>
 
@@ -171,7 +167,7 @@ export function SpeakingQuestion({
               >
                 <Square className="h-8 w-8 text-white" />
               </button>
-              <p className="text-h2 font-mono text-teal-600">{formatTime(recordingTime)}</p>
+              <p className="font-mono text-h2 text-teal-600">{formatTime(recordingTime)}</p>
               <p className="text-body-m text-gray-600">Recording... Click to stop</p>
             </>
           )}
@@ -232,8 +228,8 @@ export function SpeakingQuestion({
         {/* Tips */}
         <div className="mt-4 rounded-lg bg-amber-50 p-4">
           <p className="text-body-m text-amber-900">
-            <span className="font-semibold">Tips:</span> Speak clearly for 15-30 seconds,
-            organize your thoughts, and use complete sentences.
+            <span className="font-semibold">Tips:</span> Speak clearly for 15-30 seconds, organize
+            your thoughts, and use complete sentences.
           </p>
         </div>
       </div>

@@ -33,7 +33,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
             {index + 1}
           </span>
           <div>
-            <p className="font-medium">Câu hỏi {index + 1}</p>
+            <p className="font-medium">Question {index + 1}</p>
             <p className="text-sm capitalize text-muted-foreground">
               {(questionType || "unknown").replace(/_/g, " ")}
             </p>
@@ -43,17 +43,17 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
         {isPending ? (
           <div className="flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm font-medium">Đang chấm điểm...</span>
+            <span className="text-sm font-medium">Grading…</span>
           </div>
         ) : isCorrect ? (
           <div className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-green-700">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="text-sm font-medium">Đúng</span>
+            <span className="text-sm font-medium">Correct</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 rounded-full bg-red-100 px-3 py-1 text-red-700">
             <XCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">Sai</span>
+            <span className="text-sm font-medium">Incorrect</span>
           </div>
         )}
       </div>
@@ -67,9 +67,9 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
 
       {/* Score */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">Điểm:</span>
+        <span className="text-muted-foreground">Score:</span>
         <span className="font-semibold">
-          {earnedScore !== null && earnedScore !== undefined ? earnedScore.toFixed(1) : "..."}/
+          {earnedScore !== null && earnedScore !== undefined ? earnedScore.toFixed(1) : "—"}/
           {maxScore}
         </span>
       </div>
@@ -77,7 +77,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
       {/* User Answer */}
       {userAnswer && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Câu trả lời của bạn:</p>
+          <p className="text-sm font-medium text-muted-foreground">Your answer:</p>
 
           {userAnswer.textAnswer && (
             <div className="rounded-lg bg-muted p-3">
@@ -101,7 +101,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
       {/* Correct Answer */}
       {!isSubjective && correctAnswer && !isPending && !isCorrect && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-green-600">Đáp án đúng:</p>
+          <p className="text-sm font-medium text-green-600">Correct answer:</p>
 
           {correctAnswer.textAnswers && correctAnswer.textAnswers.length > 0 && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
@@ -132,19 +132,19 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
         <div className="space-y-3 border-t pt-3">
           <div className="flex items-center gap-2 text-blue-600">
             <MessageSquare className="h-4 w-4" />
-            <p className="text-sm font-medium">Nhận xét từ AI</p>
+            <p className="text-sm font-medium">AI Feedback</p>
           </div>
 
           {aiFeedback.overallScore !== null && aiFeedback.overallScore !== undefined && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Điểm tổng quan:</span>
+              <span className="text-sm text-muted-foreground">Overall score:</span>
               <span className="text-sm font-semibold">{aiFeedback.overallScore.toFixed(1)}/10</span>
             </div>
           )}
 
           {aiFeedback.dimensions && aiFeedback.dimensions.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Đánh giá chi tiết:</p>
+              <p className="text-sm font-medium">Detailed evaluation:</p>
               {aiFeedback.dimensions.map((dim, idx: number) => (
                 <div key={idx} className="space-y-1 rounded-lg bg-muted p-3">
                   <div className="flex items-center justify-between">
@@ -163,7 +163,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
 
           {aiFeedback.corrections && aiFeedback.corrections.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-orange-600">Lỗi cần sửa:</p>
+              <p className="text-sm font-medium text-orange-600">Errors to fix:</p>
               <ul className="space-y-2">
                 {aiFeedback.corrections.map((correction: CorrectionItem, idx: number) => (
                   <li key={idx} className="rounded-lg bg-orange-50 p-3 text-sm">
@@ -174,7 +174,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
                         <span className="font-medium text-green-600">{correction.corrected}</span>
                       </p>
                       {correction.rule && (
-                        <p className="text-xs text-muted-foreground">{correction.rule}</p>
+                        <p className="text-xs text-orange-500">{correction.rule}</p>
                       )}
                     </div>
                   </li>
@@ -185,7 +185,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
 
           {aiFeedback.suggestions && aiFeedback.suggestions.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-blue-600">Gợi ý cải thiện:</p>
+              <p className="text-sm font-medium text-blue-600">Suggestions:</p>
               <ul className="space-y-1">
                 {aiFeedback.suggestions.map((suggestion: string, idx: number) => (
                   <li key={idx} className="flex gap-2 text-sm text-muted-foreground">
