@@ -1,4 +1,4 @@
-import { PlanItemStatus } from "@/types/dto/plan/plan-item-status.dto";
+import { PlanTaskStatus } from "@/types";
 
 export type PlanItemDto = {
   itemId: string;
@@ -11,7 +11,7 @@ export type PlanItemDto = {
   skillName: string | null;
   cefrLevel: string | null;
   estimatedMinutes: number | null;
-  status: PlanItemStatus;
+  status: PlanTaskStatus;
   taskScore: number | null;
   scheduleDate: string | null;
   planCycle: number | null;

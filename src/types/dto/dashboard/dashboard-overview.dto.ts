@@ -1,4 +1,4 @@
-import { SkillSummaryItemDto } from "@/types/dto/dashboard/skill-summary-item.dto";
+import { SkillSummaryItem } from "@/types/dto/dashboard/skill-summary-item.dto";
 import { RecentActivityItem } from "@/types/dto/dashboard/recent-activity-item.dto";
 
 export type DashboardOverviewDto = {
@@ -12,7 +12,7 @@ export type DashboardOverviewDto = {
     percentage: number;
   } | null;
 
-  skillSummary: Record<"reading" | "writing" | "speaking", SkillSummaryItemDto>;
+  skillSummary: Record<"reading" | "writing" | "speaking", SkillSummaryItem>;
   streak: {
     currentDays: number;
     longestDays: number;

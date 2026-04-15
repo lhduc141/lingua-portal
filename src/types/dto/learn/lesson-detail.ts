@@ -1,3 +1,5 @@
+import { QuestionItemDto, TheoryContent } from "@/types";
+
 export type LessonDetailDto = {
   lessonId: string;
   skillName: string;
