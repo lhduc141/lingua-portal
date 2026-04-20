@@ -18,12 +18,13 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
 
+  const transcriptRef = useRef("");
+
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Web Speech API
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition =
@@ -37,34 +38,33 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
 
         recognitionRef.current.onresult = (event: any) => {
           let finalTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + " ";
-            }
-          }
+          for (let i = event.resultIndex; i < event.results.length; i++)
+            if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + " ";
+
           if (finalTranscript) {
-            setTranscript((prev) => prev + finalTranscript);
+            transcriptRef.current += finalTranscript;
+            setTranscript(transcriptRef.current);
           }
+        };
+
+        // FIX 1: onend fires AFTER recognition fully stops — safe to call onAnswerChange here
+        recognitionRef.current.onend = () => {
+          onAnswerChange(transcriptRef.current.trim());
         };
       }
     }
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (recognitionRef.current) recognitionRef.current.stop();
+      if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [onAnswerChange]);
 
   // Start recording
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Start MediaRecorder
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
@@ -81,13 +81,13 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
 
       mediaRecorderRef.current.start();
 
-      // Start Speech Recognition
       if (recognitionRef.current) {
+        // FIX 2: reset ref trước khi start recording mới
+        transcriptRef.current = "";
         setTranscript("");
         recognitionRef.current.start();
       }
 
-      // Start timer
       setRecordingTime(0);
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
@@ -102,34 +102,25 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
 
   // Stop recording
   const handleStopRecording = () => {
-    if (mediaRecorderRef.current && recordingState === "recording") {
+    if (mediaRecorderRef.current && recordingState === "recording")
       mediaRecorderRef.current.stop();
-    }
 
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
+    if (recognitionRef.current)
+      recognitionRef.current.stop(); // onend fires → gọi onAnswerChange(transcriptRef.current)
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    // Save transcript to answer
-    // onAnswerChange(transcript);
-    recognitionRef.current.stop();
+    if (timerRef.current) clearInterval(timerRef.current);
     setRecordingState("recorded");
   };
 
-  // Re-record
   const handleReRecord = () => {
     setRecordingState("ready");
+    transcriptRef.current = "";
     setTranscript("");
     setAudioUrl(null);
     setRecordingTime(0);
     onAnswerChange("");
   };
 
-  // Format time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -139,13 +130,11 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
   return (
     <div className="mx-auto max-w-3xl">
       <div className="rounded-lg border border-gray-200 bg-white p-8">
-        {/* Question */}
         <div className="mb-6">
           <h3 className="mb-3 font-serif text-h2 text-gray-900">Speaking Task</h3>
           <p className="text-body-l text-gray-700">{question.stemText}</p>
         </div>
 
-        {/* Recording controls */}
         <div className="mb-6 flex flex-col items-center justify-center gap-4 rounded-lg bg-gray-50 py-12">
           {recordingState === "ready" && (
             <>
@@ -174,10 +163,8 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
 
           {recordingState === "recorded" && (
             <>
-              <div className="flex items-center gap-3">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                  <Mic className="h-8 w-8 text-green-600" />
-                </div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <Mic className="h-8 w-8 text-green-600" />
               </div>
               <p className="text-body-m font-medium text-green-600">
                 Recording completed ({formatTime(recordingTime)})
@@ -186,7 +173,6 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
           )}
         </div>
 
-        {/* Transcript (read-only khi recorded) */}
         {recordingState === "recorded" && transcript && (
           <div className="mb-6">
             <h4 className="mb-2 text-body-m font-semibold text-gray-900">Transcript</h4>
@@ -196,7 +182,6 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
           </div>
         )}
 
-        {/* Audio playback */}
         {recordingState === "recorded" && audioUrl && (
           <div className="mb-6">
             <h4 className="mb-2 text-body-m font-semibold text-gray-900">Playback</h4>
@@ -204,7 +189,6 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
           </div>
         )}
 
-        {/* Re-record button */}
         {recordingState === "recorded" && (
           <div className="flex justify-center">
             <button
@@ -217,7 +201,6 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
           </div>
         )}
 
-        {/* AI Notice */}
         <div className="mt-6 rounded-lg bg-blue-50 p-4">
           <p className="text-body-m text-blue-900">
             This response will be evaluated by AI for pronunciation, fluency, grammar, and
@@ -225,7 +208,6 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
           </p>
         </div>
 
-        {/* Tips */}
         <div className="mt-4 rounded-lg bg-amber-50 p-4">
           <p className="text-body-m text-amber-900">
             <span className="font-semibold">Tips:</span> Speak clearly for 15-30 seconds, organize

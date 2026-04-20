@@ -6,8 +6,6 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
 
-  console.log("MIDDLEWARE:", pathname, token ? "HAS TOKEN" : "NO TOKEN");
-
   const isPublicRoute = pathname === "/" || pathname === "/login";
 
   if (!token && !isPublicRoute)

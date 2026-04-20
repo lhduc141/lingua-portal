@@ -27,7 +27,7 @@ export default function ExerciseResultPage() {
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="space-y-4 text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Đang tải kết quả...</p>
+            <p className="text-muted-foreground">Loading Result...</p>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ export default function ExerciseResultPage() {
       <div className="container max-w-4xl py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Không thể tải kết quả bài tập. Vui lòng thử lại sau.</AlertDescription>
+          <AlertDescription>Could not load exercise results. Please try again.</AlertDescription>
         </Alert>
       </div>
     );

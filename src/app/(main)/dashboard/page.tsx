@@ -5,19 +5,13 @@ import { useCurrentPlan } from "@/hooks/plan";
 import { useRouter } from "next/navigation";
 import type { PlanTaskDto } from "@/types";
 import { HeatmapDay, WEEK_DAYS } from "@/types";
-import {
-  BarChart2,
-  BookMarked,
-  CalendarDays,
-  ChevronRight,
-  Clock,
-  Flame,
-  GraduationCap,
-} from "lucide-react";
+import { BarChart2, BookMarked, CalendarDays, ChevronRight, Clock, Flame, GraduationCap, } from "lucide-react";
 import { ROUTES } from "@/config";
 import { cn } from "@/lib";
 import { PawSpinner } from "@/components";
 import { ActivityItem, HeatCell, SkillBar, StatCard } from "./_components";
+import { useState } from "react";
+import { startPracticeExercise } from "@/services";
 
 function getTodayTasks(days: { date: string; tasks: PlanTaskDto[] }[] | undefined): PlanTaskDto[] {
   if (!days) return [];
@@ -28,22 +22,16 @@ function getTodayTasks(days: { date: string; tasks: PlanTaskDto[] }[] | undefine
   );
 }
 
-function getTaskRoute(task: PlanTaskDto): string {
-  if (task.refType === "lesson" && task.refId) return ROUTES.LEARN.LESSON(task.refId);
-  if (task.refType === "question_set" && task.refId)
-    return ROUTES.LEARN.PRACTICE_SESSION(task.refId);
-  return ROUTES.PLAN;
-}
-
 export default function DashboardPage() {
   const { data, isLoading, error } = useDashboardOverview();
   const { data: streakData } = useDashboardStreak();
   const { data: planData } = useCurrentPlan();
 
+  const [startingItemId, setStartingItemId] = useState<string | null>(null);
+
   const router = useRouter();
 
   if (isLoading) return <PawSpinner fullScreen />;
-
   if (error || !data) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-slate-400">
@@ -74,9 +62,32 @@ export default function DashboardPage() {
   );
 
   const planPct = planProgress?.percentage ?? 0;
-
-  // ── Today's Tasks from plan ──────────────────────────────────────
   const todayTasks = getTodayTasks(planData?.days);
+
+  async function handleTaskClick(task: PlanTaskDto) {
+    if (!task.refId) {
+      router.push(ROUTES.PLAN);
+      return;
+    }
+
+    if (task.itemType === "lesson") {
+      router.push(ROUTES.LEARN.LESSON(task.refId));
+      return;
+    }
+
+    if (task.itemType === "practice_session") {
+      if (startingItemId) return;
+      setStartingItemId(task.itemId);
+      try {
+        const res = await startPracticeExercise(task.refId);
+        const id = res.data?.exerciseRecordId;
+        sessionStorage.setItem(`exercise_${id}`, JSON.stringify(res.data));
+        router.push(ROUTES.EXERCISE.DETAIL(id));
+      } catch {
+        setStartingItemId(null);
+      }
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -145,8 +156,12 @@ export default function DashboardPage() {
               {todayTasks.slice(0, 3).map((task) => (
                 <button
                   key={task.itemId}
-                  onClick={() => router.push(getTaskRoute(task))}
-                  className="flex w-full items-center gap-5 rounded-lg border border-black/50 bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50"
+                  onClick={() => void handleTaskClick(task)}
+                  disabled={!!startingItemId}
+                  className={cn(
+                    "flex w-full items-center gap-5 rounded-lg border border-black/50 bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50",
+                    startingItemId === task.itemId && "cursor-wait opacity-70"
+                  )}
                 >
                   <div
                     className={cn(
@@ -176,16 +191,16 @@ export default function DashboardPage() {
                         </span>
                       )}
                     </div>
-                    <p className="font-serif text-[15px] text-gray-900">{task.title}</p>
+                    <p className="font-serif text-[15px] text-gray-900">
+                      {startingItemId === task.itemId ? "Starting..." : task.title}
+                    </p>
                   </div>
                 </button>
               ))}
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-slate-400">
-              {planData
-                ? "No pending tasks for today 🎉"
-                : "Generate a learning plan to get started"}
+              {planData ? "No pending tasks for today" : "Generate a learning plan to get started"}
             </div>
           )}
         </div>
