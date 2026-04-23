@@ -22,4 +22,7 @@ export type DashboardOverviewDto = {
   totalAssessments: number;
   totalStudyMinutes: number;
   recentActivity: RecentActivityItem[];
+
+  lessonsCompleted: number; 
+  practiceCompleted: number;
 };
