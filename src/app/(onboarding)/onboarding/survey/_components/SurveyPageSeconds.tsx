@@ -91,10 +91,42 @@ export function SurveyPageSeconds({ data, onChange }: SurveyPageSecondsProps) {
           </div>
         </section>
 
-        {/*Question 6: selfAssessedLevel*/}
+
+        {/*Question 6: Available Days*/}
+        <section className={"space-y-4"}>
+          <div className="font-semibold">06. Which days are you available to study?</div>
+          <div className={"flex gap-2"}>
+            {(["MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","SUNDAY"] as const).map((day) => {
+              const isSelected = (data.availableDays ?? []).includes(day);
+              return (
+                <button
+                  key={day.slice(0, 3)}
+                  onClick={() => {
+                    const current = data.availableDays ?? [];
+                    const updated = isSelected
+                      ? current.filter((d) => d !== day)
+                      : [...current, day];
+                    onChange({ availableDays: updated });
+                  }}
+                  className={cn(
+                    "flex-1 rounded-xl border py-2.5 text-[12px] font-semibold transition-all",
+                    isSelected
+                      ? "border-teal-600 bg-teal-50 text-teal-700"
+                      : "border-gray-200 text-gray-500 hover:border-teal-200"
+                  )}
+                >
+                  {day.slice(0, 3)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[12px] text-gray-400">Rest days will be scheduled on unselected days</p>
+        </section>
+
+        {/*Question 7: selfAssessedLevel*/}
         <section className={"space-y-4"}>
           <div className="font-semibold">
-            06. How would you rate your current English level?
+            07. How would you rate your current English level?
             <span className="font-normal text-gray-400"> (optional)</span>
           </div>
           <div className={"grid grid-cols-2 gap-4"}>

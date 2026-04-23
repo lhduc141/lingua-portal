@@ -1,21 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useDashboardOverview, useDashboardStreak } from "@/hooks";
 import { useCurrentPlan } from "@/hooks/plan";
 import { useRouter } from "next/navigation";
 import type { PlanTaskDto } from "@/types";
 import { HeatmapDay, WEEK_DAYS } from "@/types";
-import { BarChart2, BookMarked, CalendarDays, ChevronRight, Clock, Flame, GraduationCap, } from "lucide-react";
+import {
+  BarChart2,
+  BookMarked,
+  CalendarDays,
+  ChevronRight,
+  Clock,
+  Flame,
+  GraduationCap,
+} from "lucide-react";
 import { ROUTES } from "@/config";
-import { cn } from "@/lib";
+import { cn, toVNDateStr } from "@/lib";
 import { PawSpinner } from "@/components";
 import { ActivityItem, HeatCell, SkillBar, StatCard } from "./_components";
-import { useState } from "react";
 import { startPracticeExercise } from "@/services";
 
 function getTodayTasks(days: { date: string; tasks: PlanTaskDto[] }[] | undefined): PlanTaskDto[] {
   if (!days) return [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toVNDateStr();
   const todayDay = days.find((d) => d.date === today);
   return (todayDay?.tasks ?? []).filter(
     (t) => t.status === "pending" || t.status === "in_progress"
@@ -26,10 +34,31 @@ export default function DashboardPage() {
   const { data, isLoading, error } = useDashboardOverview();
   const { data: streakData } = useDashboardStreak();
   const { data: planData } = useCurrentPlan();
-
+  const router = useRouter();
   const [startingItemId, setStartingItemId] = useState<string | null>(null);
 
-  const router = useRouter();
+  const handleTaskClick = async (task: PlanTaskDto) => {
+    if (!task.refId) {
+      router.push(ROUTES.PLAN);
+      return;
+    }
+    if (task.itemType === "lesson") {
+      router.push(ROUTES.LEARN.LESSON(task.refId));
+      return;
+    }
+    if (task.itemType === "practice_session") {
+      if (startingItemId) return;
+      setStartingItemId(task.itemId);
+      try {
+        const res = await startPracticeExercise(task.refId);
+        const exerciseRecordId = res.data?.exerciseRecordId;
+        sessionStorage.setItem(`exercise_${exerciseRecordId}`, JSON.stringify(res.data));
+        router.push(ROUTES.EXERCISE.DETAIL(exerciseRecordId));
+      } catch {
+        setStartingItemId(null);
+      }
+    }
+  };
 
   if (isLoading) return <PawSpinner fullScreen />;
   if (error || !data) {
@@ -56,38 +85,22 @@ export default function DashboardPage() {
       const offset = (4 - wi) * 7 + (6 - di);
       const d = new Date();
       d.setDate(d.getDate() - offset);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = toVNDateStr(d);
       return calendar.find((c) => c.date === dateStr) ?? { date: dateStr, totalStudyMinutes: 0 };
     }).reverse()
   );
 
   const planPct = planProgress?.percentage ?? 0;
   const todayTasks = getTodayTasks(planData?.days);
+  const todayStr = toVNDateStr();
+  const isPlanExpired = planData?.endDate && planData.endDate < todayStr;
 
-  async function handleTaskClick(task: PlanTaskDto) {
-    if (!task.refId) {
-      router.push(ROUTES.PLAN);
-      return;
-    }
-
-    if (task.itemType === "lesson") {
-      router.push(ROUTES.LEARN.LESSON(task.refId));
-      return;
-    }
-
-    if (task.itemType === "practice_session") {
-      if (startingItemId) return;
-      setStartingItemId(task.itemId);
-      try {
-        const res = await startPracticeExercise(task.refId);
-        const id = res.data?.exerciseRecordId;
-        sessionStorage.setItem(`exercise_${id}`, JSON.stringify(res.data));
-        router.push(ROUTES.EXERCISE.DETAIL(id));
-      } catch {
-        setStartingItemId(null);
-      }
-    }
-  }
+  // Empty state message cho Today's Tasks
+  const emptyTasksMessage = () => {
+    if (!planData) return "Generate a learning plan to get started";
+    if (isPlanExpired) return "Your plan has ended — generate a new one to continue learning.";
+    return "No pending tasks for today 🎉";
+  };
 
   return (
     <div className="space-y-5">
@@ -160,7 +173,8 @@ export default function DashboardPage() {
                   disabled={!!startingItemId}
                   className={cn(
                     "flex w-full items-center gap-5 rounded-lg border border-black/50 bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50",
-                    startingItemId === task.itemId && "cursor-wait opacity-70"
+                    startingItemId === task.itemId && "cursor-wait opacity-70",
+                    startingItemId && startingItemId !== task.itemId && "opacity-60"
                   )}
                 >
                   <div
@@ -199,8 +213,23 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-slate-400">
-              {planData ? "No pending tasks for today" : "Generate a learning plan to get started"}
+            <div
+              className={cn(
+                "rounded-lg border bg-white p-8 text-center text-sm",
+                isPlanExpired ? "border-amber-200 bg-amber-50" : "border-dashed border-gray-200"
+              )}
+            >
+              <p className={cn(isPlanExpired ? "font-medium text-amber-700" : "text-slate-400")}>
+                {emptyTasksMessage()}
+              </p>
+              {(isPlanExpired || !planData) && (
+                <button
+                  onClick={() => router.push(ROUTES.PLAN)}
+                  className="mt-3 rounded-lg bg-teal-600 px-4 py-2 text-[13px] font-bold text-white hover:bg-teal-700"
+                >
+                  Go to Learning Plan →
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -211,15 +240,13 @@ export default function DashboardPage() {
             <BarChart2 className="h-5 w-5 text-slate-400" />
             <h3 className="font-serif text-[18px] text-gray-900">Skills Performance</h3>
           </div>
-
           <div className="space-y-5">
             {(["reading", "writing", "speaking"] as const).map((skill) => (
               <SkillBar key={skill} skill={skill} data={skillSummary[skill]} />
             ))}
           </div>
-
           <button
-            onClick={() => router.push(ROUTES.EXERCISE.HISTORY)} // ← fix: ASSESSMENT → EXERCISE
+            onClick={() => router.push(ROUTES.EXERCISE.HISTORY)}
             className="w-full rounded-xl border border-black/50 py-2 text-[14px] text-slate-500 hover:bg-gray-50"
           >
             View Detailed Report
@@ -229,7 +256,6 @@ export default function DashboardPage() {
 
       {/* ── Weekly Plan + Recent Activity ────────────────────────────── */}
       <div className="flex gap-5">
-        {/* Weekly Plan */}
         <div className="flex-1 rounded-lg border border-black/50 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -247,8 +273,6 @@ export default function DashboardPage() {
               <span className="text-[14px] font-bold text-[#188c7d]">{planPct.toFixed(0)}%</span>
             </div>
           </div>
-
-          {/* Progress bar */}
           <div className="space-y-2">
             <div className="relative h-3 w-full rounded-full bg-gray-200">
               <div
@@ -268,7 +292,6 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-
           <button
             onClick={() => router.push(ROUTES.PLAN)}
             className="mt-3 flex items-center gap-1 text-[13px] font-semibold text-[#0f4b42] hover:underline"
@@ -296,6 +319,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Study Consistency ─────────────────────────────────────────── */}
       <div className="rounded-lg border border-black/50 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -312,7 +336,6 @@ export default function DashboardPage() {
             <span>More</span>
           </div>
         </div>
-
         <div className="space-y-2">
           {weeks.map((week, wi) => (
             <div key={`week-${wi}`} className="flex gap-2">

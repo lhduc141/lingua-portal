@@ -10,7 +10,9 @@ export const ROUTES = {
   },
 
   DASHBOARD: "/dashboard",
+
   PLAN: "/plan",
+  PLAN_HISTORY: '/plan/history',
 
   LEARN: {
     ROOT: "/learn",

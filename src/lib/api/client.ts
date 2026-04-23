@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ROUTES } from "@/config";
+import { ENDPOINTS } from "@/lib";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -56,7 +57,7 @@ api.interceptors.response.use(
         if (!refreshToken) throw new Error("No refresh token");
 
         const res = await axios.post(
-          `${BASE_URL}/api/auth/refresh`,
+          `${BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
           { refreshToken },
           { withCredentials: true }
         );

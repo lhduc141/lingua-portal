@@ -53,9 +53,25 @@ export function SurveyPageOne({ data, onChange }: SurveyPageOneProps) {
           </div>
         </section>
 
-        {/*Question 2: Target Certification*/}
+
+        {/*Question 2: Target Goal*/}
         <section className={"space-y-4"}>
-          <div className="font-semibold">02. Which certification are you targeting?</div>
+          <div className="font-semibold">
+            02. What is your specific learning goal?{" "}
+            <span className="font-normal text-gray-400">(optional)</span>
+          </div>
+          <input
+            type="text"
+            value={data.targetGoal ?? ""}
+            onChange={(e) => onChange({ targetGoal: e.target.value })}
+            placeholder="e.g. IELTS 7.0, pass job interview, travel abroad..."
+            className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+          />
+        </section>
+
+        {/*Question 3: Target Certification*/}
+        <section className={"space-y-4"}>
+          <div className="font-semibold">03. Which certification are you targeting?</div>
           <div className={"flex flex-wrap gap-2"}>
             {CERTIFICATION_OPTIONS.map((option) => (
               <button
@@ -84,7 +100,7 @@ export function SurveyPageOne({ data, onChange }: SurveyPageOneProps) {
         {/*Question 3: Target Deadline*/}
         <section className={"space-y-4"}>
           <div className="font-semibold">
-            03. When is your target deadline?{" "}
+            04. When is your target deadline?{" "}
             <span className="font-normal text-gray-400">(optional)</span>
           </div>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>

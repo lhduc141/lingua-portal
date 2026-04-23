@@ -52,6 +52,8 @@ export const ENDPOINTS = {
     COMPLETE: (id: string) => `${EXERCISE_ROOT}/${id}/complete`,
     RESULT: (id: string) => `${EXERCISE_ROOT}/${id}/result`,
     HISTORY: `${EXERCISE_ROOT}/history`,
+
+    TRANSCRIBE: `${EXERCISE_ROOT}/transcribe`,
   },
 
   PLAN: {
@@ -88,5 +90,9 @@ export const ENDPOINTS = {
     LESSONS: "/admin/lessons",
     UPDATE_LESSON_STATUS: (id: string) => `/admin/lessons/${id}/status`,
     PLACEMENT_SESSIONS: "/admin/placement-sessions",
+  },
+
+  ASSESSMENTS: {
+    TRANSCRIBE: "/assessments/transcribe", // ← THÊM
   },
 } as const;

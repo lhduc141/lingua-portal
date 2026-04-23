@@ -9,7 +9,7 @@ import { PawSpinner } from "@/components/shared/spinner";
 import { LearnFilters, LearnPagination, LearnStatsBar, LessonCard } from "./_components";
 import type { PlanTaskDto } from "@/types/dto/plan";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 
 export default function LessonsPage() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export default function LessonsPage() {
   const [search, setSearch] = useState("");
   const [pageIndex, setPageIndex] = useState(1);
   const [planOnly, setPlanOnly] = useState(false);
+  const [completedOnly, setCompletedOnly] = useState(false); // ← THÊM
 
   const { data, isLoading } = useLessons({
     skill: skillFilter || undefined,
@@ -37,7 +38,6 @@ export default function LessonsPage() {
     pageSize: 9999,
   });
 
-  // ── In-plan lesson IDs ──────────────────────────────────────
   const { data: planData } = useCurrentPlan();
   const inPlanLessonIds = useMemo<Set<string>>(() => {
     if (!planData?.days) return new Set();
@@ -54,10 +54,14 @@ export default function LessonsPage() {
   const inPlanCount = allRows.filter((l) => inPlanLessonIds.has(l.lessonId)).length;
 
   const gridRows = useMemo(() => {
-    return planOnly ? allRows.filter((l) => inPlanLessonIds.has(l.lessonId)) : (data?.rows ?? []);
-  }, [planOnly, allRows, data?.rows, inPlanLessonIds]);
+    let rows = planOnly
+      ? allRows.filter((l) => inPlanLessonIds.has(l.lessonId))
+      : (data?.rows ?? []);
+    if (completedOnly) rows = rows.filter((l) => l.userProgress?.isCompleted); // ← THÊM
+    return rows;
+  }, [planOnly, completedOnly, allRows, data?.rows, inPlanLessonIds]);
 
-  const total = planOnly ? gridRows.length : (data?.count ?? 0);
+  const total = planOnly || completedOnly ? gridRows.length : (data?.count ?? 0);
 
   const handleFilterChange = (type: "skill" | "cefr", value: string) => {
     if (type === "skill") setSkillFilter(value);
@@ -75,20 +79,24 @@ export default function LessonsPage() {
 
   const handlePlanOnlyToggle = () => {
     setPlanOnly((prev) => !prev);
+    setCompletedOnly(false); // ← mutual exclusive
     setPageIndex(1);
   };
 
-  // When planOnly, paginate client-side
-  const paginatedRows = planOnly
-    ? gridRows.slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE)
-    : gridRows;
+  const handleCompletedOnlyToggle = () => {
+    setCompletedOnly((prev) => !prev);
+    setPlanOnly(false); // ← mutual exclusive
+    setPageIndex(1);
+  };
+
+  const paginatedRows =
+    planOnly || completedOnly
+      ? gridRows.slice((pageIndex - 1) * PAGE_SIZE, pageIndex * PAGE_SIZE)
+      : gridRows;
 
   return (
-    // flex-col h-full so pagination sticks to bottom of (learn) scroll container
     <div className="flex min-h-full flex-col">
-      {/* ── Scrollable content ── */}
       <div className="flex-1 space-y-5">
-        {/* Header */}
         <div className="border-b border-gray-200 pb-4">
           <h1 className="font-serif text-[30px] text-gray-900">Lessons</h1>
           <p className="text-[15px] text-slate-500">
@@ -96,19 +104,19 @@ export default function LessonsPage() {
           </p>
         </div>
 
-        {/* Filters */}
         <LearnFilters
           skillFilter={skillFilter}
           cefrFilter={cefrFilter}
           search={search}
           planOnly={planOnly}
+          completedOnly={completedOnly}
           onSkillChange={(v) => handleFilterChange("skill", v)}
           onCefrChange={(v) => handleFilterChange("cefr", v)}
           onSearchChange={handleSearchChange}
           onPlanOnlyToggle={handlePlanOnlyToggle}
+          onCompletedOnlyToggle={handleCompletedOnlyToggle}
         />
 
-        {/* Stats */}
         {!isLoading && (data?.count ?? 0) > 0 && (
           <LearnStatsBar
             total={planOnly ? inPlanCount : (data?.count ?? 0)}
@@ -117,21 +125,23 @@ export default function LessonsPage() {
           />
         )}
 
-        {/* Grid */}
         {isLoading ? (
           <div className="flex justify-center py-16">
             <PawSpinner />
           </div>
         ) : paginatedRows.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
-            {planOnly
-              ? "No lessons in your plan yet. Generate a plan first."
-              : search
-                ? `No lessons found for "${search}"`
-                : "No lessons found."}
+            {completedOnly
+              ? "No completed lessons yet."
+              : planOnly
+                ? "No lessons in your plan yet. Generate a plan first."
+                : search
+                  ? `No lessons found for "${search}"`
+                  : "No lessons found."}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-4 pb-4">
+          <div className="grid grid-cols-6 gap-4 pb-4">
+            {" "}
             {paginatedRows.map((lesson, idx) => (
               <LessonCard
                 key={lesson.lessonId}
@@ -145,15 +155,18 @@ export default function LessonsPage() {
         )}
       </div>
 
-      {/* ── Sticky pagination ── */}
-      <div className="sticky bottom-0 border-t border-gray-100 bg-[#f8fbfd] py-3">
-        <LearnPagination
-          pageIndex={pageIndex}
-          totalCount={total}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPageIndex}
-        />
-      </div>
+      {total > PAGE_SIZE && (
+        <div className="sticky bottom-0 flex justify-center py-3">
+          <div className="flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 shadow-md">
+            <LearnPagination
+              pageIndex={pageIndex}
+              totalCount={total}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPageIndex}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

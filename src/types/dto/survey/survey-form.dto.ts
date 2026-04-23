@@ -10,16 +10,18 @@ import {
 export type SurveyFormData = {
   // Page 1
   primaryGoal: PrimaryGoal | null;
+  targetGoal: string;
   targetCertification: CertificationType | null;
   targetScore: string;
   targetDeadlineDate: string;
 
-  //Page 2
+  // Page 2
   primaryFocusSkills: SkillName[];
   plannedStudyHoursPerWeek: number | null;
-  selfAssessedLevel: AssessedLevel | null;
+  availableDays: string[];
 
-  // Page 3
+  // Page 3 (formerly page 2 remainder)
+  selfAssessedLevel: AssessedLevel | null;
   usageContext: UsageContext | null;
   previousLearningExperience: ExperienceLevel | null;
   difficulties: string[];
@@ -28,14 +30,16 @@ export type SurveyFormData = {
 
 export const INITIAL_SURVEY_DATA: SurveyFormData = {
   primaryGoal: null,
+  targetGoal: "",
   targetCertification: null,
   targetScore: "",
   targetDeadlineDate: "",
 
   primaryFocusSkills: [],
   plannedStudyHoursPerWeek: null,
-  selfAssessedLevel: null,
+  availableDays: [],
 
+  selfAssessedLevel: null,
   usageContext: null,
   previousLearningExperience: null,
   difficulties: [],

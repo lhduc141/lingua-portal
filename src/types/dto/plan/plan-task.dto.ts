@@ -13,4 +13,5 @@ export type PlanTaskDto = {
   taskScore: number | null;
   userFeedback: string | null;
   feedbackSubmittedAt: string | null;
+  dueDate: string | null;
 };

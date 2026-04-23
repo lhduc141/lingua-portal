@@ -45,6 +45,11 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm font-medium">Grading…</span>
           </div>
+        ) : isSubjective ? (
+          <div className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-blue-700">
+            <MessageSquare className="h-4 w-4" />
+            <span className="text-sm font-medium">Graded</span>
+          </div>
         ) : isCorrect ? (
           <div className="flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-green-700">
             <CheckCircle2 className="h-4 w-4" />
@@ -69,8 +74,11 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
       <div className="flex items-center gap-2 text-sm">
         <span className="text-muted-foreground">Score:</span>
         <span className="font-semibold">
-          {earnedScore !== null && earnedScore !== undefined ? earnedScore.toFixed(1) : "—"}/
-          {maxScore}
+          {earnedScore !== null && earnedScore !== undefined
+            ? isSubjective
+              ? `${(earnedScore * 10).toFixed(1)}/10`
+              : `${earnedScore.toFixed(1)}/${maxScore}`
+            : "—"}
         </span>
       </div>
 

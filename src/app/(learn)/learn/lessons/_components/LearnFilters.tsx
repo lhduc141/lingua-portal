@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CalendarDays, Search } from "lucide-react";
+import { CalendarDays, CheckCircle2, Search } from "lucide-react";
 import { cn } from "@/lib";
 
 const SKILL_FILTERS = [
@@ -24,10 +24,12 @@ interface LearnFiltersProps {
   cefrFilter: string;
   search: string;
   planOnly: boolean;
+  completedOnly: boolean; // ← THÊM
   onSkillChange: (skill: string) => void;
   onCefrChange: (cefr: string) => void;
   onSearchChange: (v: string) => void;
   onPlanOnlyToggle: () => void;
+  onCompletedOnlyToggle: () => void; // ← THÊM
 }
 
 export function LearnFilters({
@@ -35,10 +37,12 @@ export function LearnFilters({
   cefrFilter,
   search,
   planOnly,
+  completedOnly,
   onSkillChange,
   onCefrChange,
   onSearchChange,
   onPlanOnlyToggle,
+  onCompletedOnlyToggle,
 }: LearnFiltersProps) {
   return (
     <motion.div
@@ -70,6 +74,7 @@ export function LearnFilters({
       </div>
 
       <div className="flex items-center gap-2">
+        {/* Plan filter */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onPlanOnlyToggle}
@@ -82,6 +87,21 @@ export function LearnFilters({
         >
           <CalendarDays className="h-3.5 w-3.5" />
           Your Plan
+        </motion.button>
+
+        {/* Completed filter */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onCompletedOnlyToggle}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-all duration-200",
+            completedOnly
+              ? "border-green-600 bg-green-600 text-white shadow-sm"
+              : "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+          )}
+        >
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Completed
         </motion.button>
 
         <div className="relative">

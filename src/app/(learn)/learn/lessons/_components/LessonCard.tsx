@@ -1,33 +1,37 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, CheckCircle2, Clock, FileText, Mic, PenLine, Star } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, FileText, Mic, PenLine, Star, Users } from "lucide-react";
 import { cn } from "@/lib";
 import type { LessonListItemDto } from "@/types/dto/learn";
 
-const SKILL_STYLE: Record<string, { bar: string; badge: string; glow: string; icon: React.ReactNode }> = {
+const SKILL_STYLE: Record<string, {
+  header: string; badgeBg: string; badgeText: string;
+  btnBg: string; btnText: string; btnHover: string;
+  icon: React.ReactNode;
+}> = {
   reading: {
-    bar: "bg-teal-600",
-    badge: "bg-teal-50 text-teal-700",
-    glow: "hover:shadow-teal-100",
-    icon: <BookOpen className="h-3 w-3" />,
+    header: "bg-blue-50",
+    badgeBg: "bg-blue-100", badgeText: "text-blue-700",
+    btnBg: "bg-blue-50", btnText: "text-blue-700", btnHover: "hover:bg-blue-600 hover:text-white",
+    icon: <BookOpen className="h-3 w-3 text-blue-600" />,
   },
   writing: {
-    bar: "bg-violet-600",
-    badge: "bg-violet-50 text-violet-700",
-    glow: "hover:shadow-violet-100",
-    icon: <PenLine className="h-3 w-3" />,
+    header: "bg-violet-50",
+    badgeBg: "bg-violet-100", badgeText: "text-violet-700",
+    btnBg: "bg-violet-50", btnText: "text-violet-700", btnHover: "hover:bg-violet-600 hover:text-white",
+    icon: <PenLine className="h-3 w-3 text-violet-600" />,
   },
   speaking: {
-    bar: "bg-orange-500",
-    badge: "bg-orange-50 text-orange-600",
-    glow: "hover:shadow-orange-100",
-    icon: <Mic className="h-3 w-3" />,
+    header: "bg-orange-50",
+    badgeBg: "bg-orange-100", badgeText: "text-orange-600",
+    btnBg: "bg-orange-50", btnText: "text-orange-600", btnHover: "hover:bg-orange-500 hover:text-white",
+    icon: <Mic className="h-3 w-3 text-orange-500" />,
   },
 };
 
 interface LessonCardProps {
-  lesson: LessonListItemDto;
+  lesson: LessonListItemDto & { questionCount?: number };
   onClick: () => void;
   isInPlan?: boolean;
   index?: number;
@@ -36,124 +40,103 @@ interface LessonCardProps {
 export function LessonCard({ lesson, onClick, isInPlan = false, index = 0 }: LessonCardProps) {
   const skill = SKILL_STYLE[lesson.skillName] ?? SKILL_STYLE["reading"]!;
 
-  const isCompleted   = lesson.userProgress?.isCompleted ?? false;
-  const bestScore     = lesson.userProgress?.bestScore;
-  const attemptCount  = lesson.userProgress?.attemptCount ?? 0;
-  const lastAttemptAt = lesson.userProgress?.lastAttemptAt;
-
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const isCompleted  = lesson.userProgress?.isCompleted ?? false;
+  const bestScore    = lesson.userProgress?.bestScore;
+  const attemptCount = lesson.userProgress?.attemptCount ?? 0;
+  const questionCount = lesson.questionCount;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04, ease: "easeOut" }}
-      whileHover={{ y: -4, scale: 1.012 }}
+      transition={{ duration: 0.25, delay: index * 0.03 }}
+      whileHover={{ y: -3 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        "relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-white",
-        "shadow-sm transition-shadow duration-300",
-        skill.glow,
-        isCompleted
-          ? "border-green-200 hover:shadow-green-100 hover:shadow-md"
-          : "border-gray-200 hover:shadow-md"
+        "relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-shadow hover:shadow-md",
+        isCompleted ? "border-teal-200" : "border-gray-200"
       )}
     >
-      {/* Animated top bar */}
-      <motion.div
-        className={cn("h-1.5 w-full origin-left", skill.bar)}
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ duration: 0.4, delay: index * 0.04 + 0.1 }}
-      />
-
-      {/* Completed watermark */}
-      {isCompleted && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="relative flex items-center justify-center opacity-[0.10]">
-            <div className="absolute h-[96px] w-[96px] rounded-full border-[6px] border-green-600" />
-            <div className="absolute h-[76px] w-[76px] rounded-full border-[2px] border-green-600" />
-            <CheckCircle2 className="h-12 w-12 text-green-600" strokeWidth={2.5} />
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
-        {/* Badges */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className={cn("flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide", skill.badge)}>
+      {/* Soft colored header */}
+      <div className={cn("flex items-center justify-between px-3 py-2", skill.header)}>
+        <div className="flex items-center gap-1">
+          <span className={cn(
+            "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide",
+            skill.badgeBg, skill.badgeText
+          )}>
             {skill.icon}
             {lesson.skillName}
           </span>
           {lesson.cefrLevel && (
-            <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">
+            <span className={cn(
+              "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase",
+              skill.badgeBg, skill.badgeText
+            )}>
               {lesson.cefrLevel}
             </span>
           )}
         </div>
 
-        {/* Title */}
-        <h3 className="font-serif text-[15px] font-semibold leading-snug text-gray-900 line-clamp-2">
+        {/* Right badge */}
+        {isCompleted ? (
+          <span className={cn(
+            "flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+            skill.badgeBg, skill.badgeText
+          )}>
+            <CheckCircle2 className="h-2.5 w-2.5" />
+            {bestScore !== null && bestScore !== undefined ? `${Math.round(bestScore)}%` : "Done"}
+          </span>
+        ) : isInPlan ? (
+          <span className={cn(
+            "flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold",
+            skill.badgeBg, skill.badgeText
+          )}>
+            <Star className="h-2.5 w-2.5" />
+            In Plan
+          </span>
+        ) : null}
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <h3 className="font-serif text-[13px] font-semibold leading-snug text-gray-900 line-clamp-2">
           {lesson.title}
         </h3>
 
-        {/* Meta */}
-        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+        <div className="mt-auto flex items-center gap-3 text-[10px] text-slate-400">
           {lesson.estimatedMinutes != null && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {lesson.estimatedMinutes} mins
+              {lesson.estimatedMinutes}m
             </span>
           )}
-          <span className="flex items-center gap-1">
-            <FileText className="h-3 w-3" />
-            Theory + Questions
-          </span>
-        </div>
-
-        {/* Attempt info */}
-        {isCompleted && (
-          <p className="text-[11px] text-slate-400">
-            {attemptCount} {attemptCount === 1 ? "attempt" : "attempts"}
-            {lastAttemptAt && ` · Last: ${formatDate(lastAttemptAt)}`}
-          </p>
-        )}
-
-        {/* Bottom action row */}
-        <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
-          {isCompleted ? (
-            <span className="flex items-center gap-1 rounded-md bg-green-100 px-2.5 py-1 text-[11px] font-bold text-green-700">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {bestScore !== null && bestScore !== undefined ? `${Math.round(bestScore)}%` : "DONE"}
-            </span>
-          ) : isInPlan ? (
-            <span className="flex items-center gap-1 rounded-md border border-teal-200 bg-teal-50 px-2.5 py-1 text-[11px] font-bold text-teal-700">
-              <Star className="h-3.5 w-3.5" />
-              IN YOUR PLAN
-            </span>
-          ) : (
-            <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
-              NEW
+          {questionCount != null && questionCount > 0 && (
+            <span className="flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              {questionCount} Questions
             </span>
           )}
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "rounded-lg border px-4 py-1.5 text-[12px] font-bold transition-colors",
-              isCompleted
-                ? "border-green-300 text-green-700 hover:bg-green-50"
-                : isInPlan
-                  ? "border-transparent bg-teal-600 text-white hover:bg-teal-700"
-                  : "border-teal-600 text-teal-600 hover:bg-teal-50"
-            )}
-          >
-            {isCompleted ? "Review →" : "Start →"}
-          </motion.button>
+          {attemptCount > 0 && (
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {attemptCount} Attempt
+            </span>
+          )}
         </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          className={cn(
+            "mt-1 w-full rounded-lg py-1.5 text-[11px] font-bold transition-all duration-350",
+            isCompleted
+              ? "border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-600 hover:text-white"
+              : `${skill.btnBg} ${skill.btnText} ${skill.btnHover}`
+          )}
+        >
+          {isCompleted ? "Review →" : "Start →"}
+        </motion.button>
       </div>
     </motion.div>
   );

@@ -20,7 +20,7 @@ export function LearnPagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 pt-6">
+    <div className="flex items-center justify-center gap-2">
       <button
         onClick={() => onPageChange(pageIndex - 1)}
         disabled={pageIndex === 1}

@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, Clock, SkipForward } from "lucide-react";
-import { BookOpen, Mic, PenLine } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  Circle,
+  ClipboardList,
+  Clock,
+  Mic,
+  PenLine,
+  SkipForward,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ROUTES } from "@/config/routes";
 import { startPracticeExercise } from "@/services";
@@ -39,10 +47,19 @@ interface TaskCardProps {
   task: PlanTaskDto;
   onComplete: (itemId: string) => void;
   onSkip: (itemId: string) => void;
+  onReviewClick: (task: PlanTaskDto) => void;
   isLoading: boolean;
+  todayStr: string;
 }
 
-export function TaskCard({ task, onComplete, onSkip, isLoading }: TaskCardProps) {
+export function TaskCard({
+  task,
+  onComplete,
+  onSkip,
+  onReviewClick,
+  isLoading,
+  todayStr,
+}: TaskCardProps) {
   const router = useRouter();
   const [isStarting, setIsStarting] = useState(false);
 
@@ -50,10 +67,20 @@ export function TaskCard({ task, onComplete, onSkip, isLoading }: TaskCardProps)
   const isCompleted = task.status === "completed";
   const isSkipped = task.status === "skipped";
   const isDone = isCompleted || isSkipped;
+  const isWeeklyReview = task.itemType === "weekly_review";
+  const isReviewReady = isWeeklyReview && !!task.description;
+  const isOverdue =
+    task.dueDate && task.dueDate < todayStr && task.status === "pending" && !isWeeklyReview;
   const isClickable =
     !!task.refId && (task.itemType === "lesson" || task.itemType === "practice_session");
 
   const handleCardClick = async () => {
+    // Weekly review → open modal
+    if (isWeeklyReview) {
+      onReviewClick(task);
+      return;
+    }
+
     if (!task.refId || isStarting) return;
 
     if (task.itemType === "lesson") {
@@ -82,17 +109,24 @@ export function TaskCard({ task, onComplete, onSkip, isLoading }: TaskCardProps)
       }}
       className={cn(
         "flex flex-col gap-2 rounded-lg bg-white p-2.5 text-left shadow-sm",
-        isClickable &&
+        (isClickable || isWeeklyReview) &&
           !isStarting &&
           "cursor-pointer transition-all hover:shadow-md hover:ring-1 hover:ring-teal-200",
         isStarting && "cursor-wait opacity-70",
         isCompleted && "opacity-75",
-        isSkipped && "opacity-50"
+        isSkipped && "opacity-50",
+        isOverdue && "ring-1 ring-red-200"
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        {skill ? (
+        {/* Skill or type badge */}
+        {isWeeklyReview ? (
+          <span className="flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
+            <ClipboardList className="h-3 w-3" />
+            REVIEW
+          </span>
+        ) : skill ? (
           <span
             className={cn(
               "flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold",
@@ -108,13 +142,22 @@ export function TaskCard({ task, onComplete, onSkip, isLoading }: TaskCardProps)
           </span>
         )}
 
-        {isCompleted ? (
-          <CheckCircle2 className="h-3 w-3 text-teal-600" />
-        ) : isSkipped ? (
-          <SkipForward className="h-3 w-3 text-slate-300" />
-        ) : (
-          <Circle className="h-3 w-3 text-slate-300" />
-        )}
+        <div className="flex items-center gap-1">
+          {/* Overdue badge */}
+          {isOverdue && (
+            <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[8px] font-bold text-red-500">
+              Overdue
+            </span>
+          )}
+          {/* Status icon */}
+          {isCompleted ? (
+            <CheckCircle2 className="h-3 w-3 text-teal-600" />
+          ) : isSkipped ? (
+            <SkipForward className="h-3 w-3 text-slate-300" />
+          ) : (
+            <Circle className="h-3 w-3 text-slate-300" />
+          )}
+        </div>
       </div>
 
       {/* Title */}
@@ -122,28 +165,39 @@ export function TaskCard({ task, onComplete, onSkip, isLoading }: TaskCardProps)
         {isStarting ? "Starting..." : task.title}
       </p>
 
-      {/* Meta */}
-      <div className="flex items-center justify-between">
-        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] font-semibold text-slate-500">
-          {TYPE_LABEL[task.itemType] ?? "Task"}
-        </span>
-        {task.estimatedMinutes && (
-          <span className="flex items-center gap-0.5 text-[8px] font-semibold text-slate-400">
-            <Clock className="h-2.5 w-2.5" />
-            {task.estimatedMinutes} mins
-          </span>
-        )}
-      </div>
-
-      {/* Description */}
-      {task.description && (
-        <p className="line-clamp-2 text-[8px] font-light leading-relaxed text-slate-400">
-          {task.description}
+      {/* Weekly review — status */}
+      {isWeeklyReview && (
+        <p
+          className={cn(
+            "text-[9px] font-medium",
+            isReviewReady ? "text-teal-600" : "text-slate-400"
+          )}
+        >
+          {task.feedbackSubmittedAt
+            ? "✓ Feedback submitted"
+            : isReviewReady
+              ? "Tap to read & submit feedback"
+              : "Available at end of week"}
         </p>
       )}
 
-      {/* Actions */}
-      {!isDone && task.itemType !== "weekly_review" && (
+      {/* Meta */}
+      {!isWeeklyReview && (
+        <div className="flex items-center justify-between">
+          <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] font-semibold text-slate-500">
+            {TYPE_LABEL[task.itemType] ?? "Task"}
+          </span>
+          {task.estimatedMinutes && (
+            <span className="flex items-center gap-0.5 text-[8px] font-semibold text-slate-400">
+              <Clock className="h-2.5 w-2.5" />
+              {task.estimatedMinutes} mins
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Actions — không hiện cho weekly_review */}
+      {!isDone && !isWeeklyReview && (
         <div className="flex gap-1 pt-1">
           <button
             onClick={(e) => {

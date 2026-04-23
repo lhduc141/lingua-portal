@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Mic, RefreshCw, Square } from "lucide-react";
+import { useRef, useState } from "react";
+import { AlertTriangle, Loader2, Mic, RefreshCw, Square } from "lucide-react";
 import type { AssessmentQuestionDto } from "@/types/dto/exercise";
+import { useTranscribeAudio } from "@/hooks/exercise";
 
 interface SpeakingQuestionProps {
   question: AssessmentQuestionDto;
@@ -10,7 +11,7 @@ interface SpeakingQuestionProps {
   onAnswerChange: (text: string) => void;
 }
 
-type RecordingState = "ready" | "recording" | "recorded";
+type RecordingState = "ready" | "recording" | "transcribing" | "recorded";
 
 export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: SpeakingQuestionProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("ready");
@@ -18,201 +19,169 @@ export function SpeakingQuestion({ question, textAnswer, onAnswerChange }: Speak
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
 
-  const transcriptRef = useRef("");
-
-  const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const transcribeMutation = useTranscribeAudio();
 
-      if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = "en-US";
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-        recognitionRef.current.onresult = (event: any) => {
-          let finalTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; i++)
-            if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + " ";
-
-          if (finalTranscript) {
-            transcriptRef.current += finalTranscript;
-            setTranscript(transcriptRef.current);
-          }
-        };
-
-        // FIX 1: onend fires AFTER recognition fully stops — safe to call onAnswerChange here
-        recognitionRef.current.onend = () => {
-          onAnswerChange(transcriptRef.current.trim());
-        };
-      }
-    }
-
-    return () => {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [onAnswerChange]);
-
-  // Start recording
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data);
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-        stream.getTracks().forEach((track) => track.stop());
+        setAudioUrl(URL.createObjectURL(audioBlob));
+        stream.getTracks().forEach((t) => t.stop());
+
+        setRecordingState("transcribing");
+        transcribeMutation.mutate(audioBlob, {
+          onSuccess: (data) => {
+            const text = data.transcript ?? "";
+            setTranscript(text);
+            onAnswerChange(text);
+            setRecordingState("recorded");
+          },
+          onError: () => {
+            setRecordingState("recorded");
+          },
+        });
       };
 
       mediaRecorderRef.current.start();
-
-      if (recognitionRef.current) {
-        // FIX 2: reset ref trước khi start recording mới
-        transcriptRef.current = "";
-        setTranscript("");
-        recognitionRef.current.start();
-      }
-
       setRecordingTime(0);
-      timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
-      }, 1000);
-
+      timerRef.current = setInterval(() => setRecordingTime((p) => p + 1), 1000);
+      setTranscript("");
       setRecordingState("recording");
-    } catch (error) {
-      console.error("Failed to start recording:", error);
+    } catch {
       alert("Could not access microphone. Please check permissions.");
     }
   };
 
-  // Stop recording
   const handleStopRecording = () => {
-    if (mediaRecorderRef.current && recordingState === "recording")
-      mediaRecorderRef.current.stop();
-
-    if (recognitionRef.current)
-      recognitionRef.current.stop(); // onend fires → gọi onAnswerChange(transcriptRef.current)
-
     if (timerRef.current) clearInterval(timerRef.current);
-    setRecordingState("recorded");
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
   };
 
   const handleReRecord = () => {
     setRecordingState("ready");
-    transcriptRef.current = "";
     setTranscript("");
     setAudioUrl(null);
     setRecordingTime(0);
     onAnswerChange("");
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="rounded-lg border border-gray-200 bg-white p-8">
+      <div className="rounded-xl border border-gray-200 bg-white p-8">
+        {/* Question */}
         <div className="mb-6">
-          <h3 className="mb-3 font-serif text-h2 text-gray-900">Speaking Task</h3>
-          <p className="text-body-l text-gray-700">{question.stemText}</p>
+          <h2 className="mb-3 font-serif text-[24px] text-gray-900">Speaking Task</h2>
+          <p className="text-[16px] leading-relaxed text-gray-600">{question.stemText}</p>
         </div>
 
-        <div className="mb-6 flex flex-col items-center justify-center gap-4 rounded-lg bg-gray-50 py-12">
+        {/* Recording area */}
+        <div className="rounded-xl border border-gray-100 bg-gray-50 p-8">
+          {/* READY */}
           {recordingState === "ready" && (
-            <>
+            <div className="flex flex-col items-center gap-4">
               <button
-                onClick={handleStartRecording}
-                className="flex h-20 w-20 items-center justify-center rounded-full bg-teal-600 transition-transform hover:scale-105 hover:bg-teal-700"
+                onClick={() => void handleStartRecording()}
+                className="flex h-20 w-20 items-center justify-center rounded-full bg-teal-600 text-white shadow-lg transition hover:bg-teal-700 active:scale-95"
               >
-                <Mic className="h-10 w-10 text-white" />
+                <Mic className="h-8 w-8" />
               </button>
-              <p className="text-body-m text-gray-600">Click to start recording</p>
-            </>
+              <p className="text-[14px] text-gray-500">Click to start recording</p>
+            </div>
           )}
 
+          {/* RECORDING */}
           {recordingState === "recording" && (
-            <>
+            <div className="flex flex-col items-center gap-4">
               <button
                 onClick={handleStopRecording}
-                className="flex h-20 w-20 items-center justify-center rounded-full bg-red-600 transition-transform hover:scale-105 hover:bg-red-700"
+                className="flex h-20 w-20 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition hover:bg-red-600 active:scale-95"
               >
-                <Square className="h-8 w-8 text-white" />
+                <Square className="h-8 w-8" />
               </button>
-              <p className="font-mono text-h2 text-teal-600">{formatTime(recordingTime)}</p>
-              <p className="text-body-m text-gray-600">Recording... Click to stop</p>
-            </>
-          )}
-
-          {recordingState === "recorded" && (
-            <>
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                <Mic className="h-8 w-8 text-green-600" />
-              </div>
-              <p className="text-body-m font-medium text-green-600">
-                Recording completed ({formatTime(recordingTime)})
+              <p className="font-mono text-[28px] font-bold text-teal-600">
+                {formatTime(recordingTime)}
               </p>
-            </>
+              <p className="text-[14px] text-gray-500">Recording... Click to stop</p>
+            </div>
+          )}
+
+          {/* TRANSCRIBING */}
+          {recordingState === "transcribing" && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <Loader2 className="h-10 w-10 animate-spin text-teal-500" />
+              <p className="text-[14px] font-medium text-teal-600">Transcribing your audio...</p>
+              <p className="text-[12px] text-gray-400">This may take a few seconds</p>
+            </div>
+          )}
+
+          {/* RECORDED */}
+          {recordingState === "recorded" && (
+            <div className="flex flex-col gap-4">
+              {audioUrl && <audio controls src={audioUrl} className="w-full" />}
+
+              {transcript ? (
+                <div className="rounded-lg border border-teal-100 bg-white p-4">
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Transcript
+                  </p>
+                  <p className="text-[14px] leading-relaxed text-gray-700">{transcript}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[13px] text-amber-700">
+                      Transcription failed. Please type your response below.
+                    </p>
+                  </div>
+                  <textarea
+                    rows={4}
+                    placeholder="Type what you said here..."
+                    className="w-full resize-none rounded-lg border border-gray-200 p-3 text-[13px] text-gray-700 outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-100"
+                    onChange={(e) => {
+                      setTranscript(e.target.value);
+                      onAnswerChange(e.target.value);
+                    }}
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={handleReRecord}
+                className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Re-record
+              </button>
+            </div>
           )}
         </div>
 
-        {recordingState === "recorded" && transcript && (
-          <div className="mb-6">
-            <h4 className="mb-2 text-body-m font-semibold text-gray-900">Transcript</h4>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <p className="text-body-l text-gray-700">{transcript}</p>
-            </div>
+        {/* Info */}
+        <div className="mt-4 space-y-2">
+          <div className="rounded-lg bg-blue-50 p-3 text-[13px] text-blue-700">
+            Your response will be evaluated by AI for fluency, grammar, and vocabulary.
           </div>
-        )}
-
-        {recordingState === "recorded" && audioUrl && (
-          <div className="mb-6">
-            <h4 className="mb-2 text-body-m font-semibold text-gray-900">Playback</h4>
-            <audio src={audioUrl} controls className="w-full" />
-          </div>
-        )}
-
-        {recordingState === "recorded" && (
-          <div className="flex justify-center">
-            <button
-              onClick={handleReRecord}
-              className="flex items-center gap-2 rounded-lg border-2 border-gray-300 px-4 py-2 text-body-m font-medium text-gray-700 transition-colors hover:border-gray-400"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Re-record
-            </button>
-          </div>
-        )}
-
-        <div className="mt-6 rounded-lg bg-blue-50 p-4">
-          <p className="text-body-m text-blue-900">
-            This response will be evaluated by AI for pronunciation, fluency, grammar, and
-            vocabulary.
-          </p>
-        </div>
-
-        <div className="mt-4 rounded-lg bg-amber-50 p-4">
-          <p className="text-body-m text-amber-900">
-            <span className="font-semibold">Tips:</span> Speak clearly for 15-30 seconds, organize
+          <div className="rounded-lg bg-amber-50 p-3 text-[13px] text-amber-700">
+            <span className="font-semibold">Tips:</span> Speak clearly for 30–60 seconds, organize
             your thoughts, and use complete sentences.
-          </p>
+          </div>
         </div>
       </div>
     </div>

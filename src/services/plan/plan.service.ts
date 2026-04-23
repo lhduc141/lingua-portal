@@ -17,6 +17,10 @@ export async function submitReviewFeedback(itemId: string, dto: ReviewFeedbackDt
   return api.post(ENDPOINTS.PLAN.REVIEW_FEEDBACK(itemId), dto);
 }
 
+export async function getPlanHistory(params?: { pageIndex?: number; pageSize?: number }) {
+  return api.get(ENDPOINTS.PLAN.HISTORY, { params });
+}
+
 export async function resetPlan() {
   return api.delete(ENDPOINTS.PLAN.RESET);
 }
