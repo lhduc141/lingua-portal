@@ -7,9 +7,11 @@ import type { ExerciseStartDto } from "@/types/dto/exercise";
 import { ROUTES } from "@/config";
 import { PawSpinner } from "@/components/shared/spinner";
 import {
+  AudioPlayer,
   ExerciseFooter,
   ExerciseHeader,
   FillBlankQuestion,
+  MatchingQuestion,
   ReadingQuestion,
   SpeakingQuestion,
   WritingQuestion,
@@ -21,16 +23,16 @@ type UserAnswer = {
 };
 
 export default function ExercisePage() {
-  const params = useParams();
-  const router = useRouter();
+  const params     = useParams();
+  const router     = useRouter();
   const exerciseId = params.exerciseId as string;
 
-  const [exerciseData, setExerciseData] = useState<ExerciseStartDto | null>(null);
+  const [exerciseData, setExerciseData]         = useState<ExerciseStartDto | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Map<string, UserAnswer>>(new Map());
-  const [isSubmittingAll, setIsSubmittingAll] = useState(false);
+  const [answers, setAnswers]                   = useState<Map<string, UserAnswer>>(new Map());
+  const [isSubmittingAll, setIsSubmittingAll]   = useState(false);
 
-  const submitAnswerMutation = useSubmitAnswer();
+  const submitAnswerMutation  = useSubmitAnswer();
   const completeExerciseMutation = useCompleteExercise();
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function ExercisePage() {
   }
 
   const currentQuestion = exerciseData.questions[currentQuestionIndex];
-  const totalQuestions = exerciseData.questions.length;
+  const totalQuestions  = exerciseData.questions.length;
 
   if (!currentQuestion) {
     return (
@@ -73,13 +75,11 @@ export default function ExercisePage() {
   };
 
   const handleNext = () => {
-    if (!isLastQuestion)
-      setCurrentQuestionIndex((prev) => prev + 1);
+    if (!isLastQuestion) setCurrentQuestionIndex((prev) => prev + 1);
   };
 
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0)
-      setCurrentQuestionIndex((prev) => prev - 1);
+    if (currentQuestionIndex > 0) setCurrentQuestionIndex((prev) => prev - 1);
   };
 
   const handleComplete = async () => {
@@ -91,9 +91,7 @@ export default function ExercisePage() {
           dto: { questionId, answer },
         });
       }
-
       await completeExerciseMutation.mutateAsync(exerciseId);
-
       router.push(ROUTES.EXERCISE.RESULT(exerciseId));
     } catch (error) {
       console.error("Failed to complete exercise:", error);
@@ -112,6 +110,14 @@ export default function ExercisePage() {
     }
   };
 
+  // ── Audio player for listening skill ──────────────────────────────────
+  // Show audio player if current question has a passage with audioUrl.
+  // All questions in a listening item share the same passage/audio.
+  const audioUrl   = currentQuestion.passage?.audioUrl ?? null;
+  const transcript = currentQuestion.passage?.content ?? null;
+  const audioTitle = currentQuestion.passage?.title ?? null;
+
+  // ── Question renderer ─────────────────────────────────────────────────
   const renderQuestion = () => {
     const currentAnswer = answers.get(currentQuestion.questionId);
 
@@ -138,7 +144,8 @@ export default function ExercisePage() {
             onAnswerChange={(text) =>
               handleAnswerChange(currentQuestion.questionId, { textAnswer: text })
             }
-            passage={currentQuestion.passage ?? null}
+            // Only pass passage for reading (non-listening) fill_blank
+            passage={!audioUrl ? (currentQuestion.passage ?? null) : null}
           />
         );
 
@@ -166,21 +173,35 @@ export default function ExercisePage() {
           />
         );
 
+      case "matching":
+        return (
+          <MatchingQuestion
+            key={currentQuestion.questionId}
+            question={currentQuestion}
+            textAnswer={currentAnswer?.textAnswer ?? ""}
+            onAnswerChange={(json) =>
+              handleAnswerChange(currentQuestion.questionId, { textAnswer: json })
+            }
+          />
+        );
+
       default:
-        return <div>Unknown question type</div>;
+        return <div className="p-8 text-gray-400">Unknown question type</div>;
     }
   };
 
   return (
     <div className="relative flex h-screen flex-col bg-gray-50">
-      {/* Loading overlay khi đang nộp bài */}
+      {/* Loading overlay */}
       {isSubmittingAll && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
           <PawSpinner size="lg" />
           <p className="mt-4 text-body-l font-medium text-teal-700">
             Submitting your answers...
           </p>
-          <p className="mt-1 text-body-m text-gray-500">Please don&apos;t close this page</p>
+          <p className="mt-1 text-body-m text-gray-500">
+            Please don&apos;t close this page
+          </p>
         </div>
       )}
 
@@ -196,9 +217,18 @@ export default function ExercisePage() {
       />
 
       {/* Question Content */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">{renderQuestion()}</div>
+      <div className="flex-1 overflow-y-auto px-8 py-6">
+        {audioUrl && (
+          <AudioPlayer
+            audioUrl={audioUrl}
+            transcript={transcript}
+            title={audioTitle}
+          />
+        )}
 
-      {/* Footer */}
+        {renderQuestion()}
+      </div>
+
       <ExerciseFooter
         currentQuestion={currentQuestionIndex + 1}
         totalQuestions={totalQuestions}

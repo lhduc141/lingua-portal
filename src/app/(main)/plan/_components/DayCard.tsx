@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, BookOpen, CheckCircle2, Clock, Mic, PenLine, SkipForward } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Headphones,
+  Mic,
+  PenLine,
+  SkipForward,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ROUTES } from "@/config/routes";
 import { startPracticeExercise } from "@/services";
@@ -24,6 +33,11 @@ const SKILL_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: s
     color: "text-orange-500 bg-orange-50 border-orange-100",
     bg: "text-orange-200",
   },
+  listening: {
+    icon: <Headphones className="h-2.5 w-2.5" />,
+    color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    bg: "text-emerald-200",
+  },
 };
 
 const TYPE_CONFIG = {
@@ -37,6 +51,7 @@ const SKILL_ICON_LG: Record<string, React.ReactNode> = {
   reading: <BookOpen className="h-12 w-12" />,
   writing: <PenLine className="h-12 w-12" />,
   speaking: <Mic className="h-12 w-12" />,
+  listening: <Headphones className="h-12 w-12" />,
 };
 
 interface DayCardProps {
@@ -45,6 +60,8 @@ interface DayCardProps {
   isToday: boolean;
   isPast: boolean;
   tasks: PlanTaskDto[];
+  hasReview?: boolean;
+  reviewTask?: PlanTaskDto | null;
   onComplete: (itemId: string) => void;
   onSkip: (itemId: string) => void;
   onReviewClick: (task: PlanTaskDto) => void;
@@ -60,8 +77,11 @@ export function DayCard({
   tasks,
   onComplete,
   onSkip,
+  onReviewClick,
   isLoading,
   todayStr,
+  hasReview = false,
+  reviewTask,
 }: DayCardProps) {
   const router = useRouter();
   const [startingId, setStartingId] = useState<string | null>(null);
@@ -115,7 +135,6 @@ export function DayCard({
         isBeforePlan && "opacity-40"
       )}
     >
-      {/* ── Header ── */}
       <div className={cn("flex items-center justify-between px-3 py-2.5", headerCls)}>
         <div className="flex items-center gap-2">
           <p className={cn("text-[10px] font-bold uppercase tracking-wider", dayLabelCls)}>
@@ -134,6 +153,17 @@ export function DayCard({
           <span className="text-[9px] font-semibold uppercase tracking-wider text-teal-400">
             Rest
           </span>
+        )}
+        {hasReview && reviewTask && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReviewClick?.(reviewTask);
+            }}
+            className="rounded-full bg-teal-100 px-2 py-0.5 text-[9px] font-bold text-teal-700 hover:bg-teal-200"
+          >
+            REVIEW
+          </button>
         )}
       </div>
 

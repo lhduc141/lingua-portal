@@ -69,6 +69,7 @@ const SKILLS = [
     accentHex: "#ea580c",
     desc: "Perfect your accent with real-time speech analysis and conversational AI practice partners.",
   },
+  
 ] as const;
 
 const FEATURES = [
@@ -127,7 +128,6 @@ const SKILL_BARS = [
   { label: "Speaking", pct: 55, color: "bg-orange-500", text: "text-orange-500", icon: Mic },
 ] as const;
 
-// ─── Reusable scroll-reveal wrapper ──────────────────────────────────────────
 function Reveal({
   children,
   delay = 0,

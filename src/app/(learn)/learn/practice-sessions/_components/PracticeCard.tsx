@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Clock, FileText, Mic, PenLine } from "lucide-react";
+import { BookOpen, Clock, FileText, Headphones, Mic, PenLine } from "lucide-react";
 import { cn } from "@/lib";
 import type { QuestionSetListItemDto } from "@/types/dto/learn";
 
@@ -43,6 +43,15 @@ const SKILL_STYLE: Record<
     btnText: "text-orange-600",
     btnHover: "hover:bg-orange-500 hover:text-white",
     icon: <Mic className="h-3 w-3 text-orange-500" />,
+  },
+  listening: {
+    header: "bg-sky-50",
+    badgeBg: "bg-sky-100",
+    badgeText: "text-sky-700",
+    btnBg: "bg-sky-50",
+    btnText: "text-sky-700",
+    btnHover: "hover:bg-sky-600 hover:text-white",
+    icon: <Headphones className="h-3 w-3 text-sky-600" />,
   },
 };
 

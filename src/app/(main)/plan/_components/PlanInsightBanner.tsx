@@ -61,7 +61,7 @@ export function PlanInsightBanner({
       <div className="rounded-2xl border border-gray-200 bg-white p-4">
         <h3 className="mb-3 text-[13px] font-bold text-gray-700">Skill Focus</h3>
         <div className="space-y-3">
-          {(["reading", "writing", "speaking"] as const).map((skill) => {
+          {(["reading", "writing", "speaking", "listening"] as const).map((skill) => {
             const data = skillSummary[skill];
             const cfg = SKILL_CONFIG[skill];
             const trendKey = data?.trend ?? "new";

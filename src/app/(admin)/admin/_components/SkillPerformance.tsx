@@ -21,7 +21,7 @@ export function SkillPerformance({ skillPerformance }: SkillPerformanceProps) {
       <h3 className="mb-1 font-serif text-[18px] text-gray-900">Skill Performance</h3>
       <p className="mb-5 text-[12px] text-slate-400">Average score across all scored exercises</p>
       <div className="space-y-5">
-        {(["reading", "writing", "speaking"] as const).map((skill) => {
+        {(["reading", "writing", "speaking", "listening"] as const).map((skill) => {
           const data = skillPerformance[skill];
           const cfg = SKILL_CONFIG[skill];
           const avg = data?.avgScore ?? null;

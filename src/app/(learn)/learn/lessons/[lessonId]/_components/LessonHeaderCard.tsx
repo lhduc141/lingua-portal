@@ -6,12 +6,14 @@ const SKILL_BAR: Record<string, string> = {
   reading: "bg-teal-600",
   writing: "bg-violet-600",
   speaking: "bg-vermilion-500",
+  listening: "bg-emerald-500",
 };
 
 const SKILL_BADGE: Record<string, string> = {
   reading: "bg-teal-50 text-teal-700",
   writing: "bg-violet-50 text-violet-700",
   speaking: "bg-vermilion-50 text-vermilion-500",
+  listening: "bg-emerald-50 text-emerald-700",
 };
 
 interface LessonHeaderCardProps {

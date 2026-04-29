@@ -3,7 +3,7 @@
 import { cn } from "@/lib";
 
 type RefTypeFilter = "all" | "lesson" | "question_set";
-type SkillFilter = "all" | "reading" | "writing" | "speaking";
+type SkillFilter = "all" | "reading" | "writing" | "speaking" | "listening";
 
 interface HistoryFiltersProps {
   refType: RefTypeFilter;
@@ -23,6 +23,7 @@ const SKILL_OPTIONS: { value: SkillFilter; label: string; color: string }[] = [
   { value: "reading", label: "Reading", color: "text-teal-600" },
   { value: "writing", label: "Writing", color: "text-violet-600" },
   { value: "speaking", label: "Speaking", color: "text-orange-500" },
+  { value: "listening", label: "Listening", color: "text-emerald-500" }, 
 ];
 
 export function HistoryFilters({

@@ -10,6 +10,7 @@ import {
   Clock,
   Flame,
   GraduationCap,
+  Headphones,
   Lightbulb,
   Mic,
   PenLine,
@@ -30,12 +31,14 @@ const SKILL_ICON = {
   reading: <BookOpen className="h-3.5 w-3.5" />,
   writing: <PenLine className="h-3.5 w-3.5" />,
   speaking: <Mic className="h-3.5 w-3.5" />,
+  listening: <Headphones className="h-3.5 w-3.5" />,
 };
 
 const SKILL_COLOR = {
   reading: "text-blue-600 bg-blue-50",
   writing: "text-violet-600 bg-violet-50",
   speaking: "text-orange-500 bg-orange-50",
+  listening: "text-emerald-600 bg-emerald-50",
 };
 
 function toLocalDateStr(date = new Date()): string {
@@ -235,7 +238,8 @@ export default function DashboardPage() {
                             "rounded-full px-2 py-0.5 text-[8px] font-bold uppercase",
                             task.skillName === "reading" && "bg-blue-100 text-blue-600",
                             task.skillName === "writing" && "bg-purple-100 text-purple-600",
-                            task.skillName === "speaking" && "bg-orange-100 text-orange-600"
+                            task.skillName === "speaking" && "bg-orange-100 text-orange-600",
+                            task.skillName === "listening" && "bg-emerald-100 text-emerald-600"
                           )}
                         >
                           {task.skillName}
@@ -269,7 +273,7 @@ export default function DashboardPage() {
             <h3 className="font-serif text-[18px] text-gray-900">Skills Performance</h3>
           </div>
           <div className="flex-1 space-y-4">
-            {(["reading", "writing", "speaking"] as const).map((skill) => (
+            {(["reading", "writing", "speaking", "listening"] as const).map((skill) => (
               <SkillBar key={skill} skill={skill} data={skillSummary[skill]} />
             ))}
           </div>
@@ -411,16 +415,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right: Recent Activity + AI Tip */}
         <div className="space-y-4">
-          {/* Recent Activity */}
           <div>
             <h3 className="mb-2 font-serif text-[18px] text-gray-900">Recent Activity</h3>
             <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4">
               {recentActivity?.length > 0 ? (
-                recentActivity.slice(0, 5).map((item) => (
+                recentActivity.slice(0, 5).map((item, index) => (
                   <div
-                    key={`${item.type}-${item.date}-${item.title}`}
+                    key={`activity-${index}`}
                     className="flex items-start gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0"
                   >
                     <div

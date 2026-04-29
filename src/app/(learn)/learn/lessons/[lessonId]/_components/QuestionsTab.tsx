@@ -10,6 +10,8 @@ const TYPE_LABEL: Record<string, string> = {
   fill_blank: "Fill in the Blank",
   essay: "Essay",
   speaking: "Speaking",
+  dictation: "Dictation",
+  matching: "Matching",
 };
 
 export function QuestionsTab({ questions }: QuestionsTabProps) {

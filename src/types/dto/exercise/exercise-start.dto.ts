@@ -22,7 +22,7 @@ export type ExerciseStartDto = {
 
 export type AssessmentQuestionDto = {
   questionId: string;
-  type: "mcq_single" | "mcq_multi" | "fill_blank" | "essay" | "speaking";
+  type: "mcq_single" | "mcq_multi" | "fill_blank" | "essay" | "speaking" | "matching";
   position: number;
   maxScore: number;
   stemText: string | null;
@@ -33,6 +33,7 @@ export type AssessmentQuestionDto = {
     content: string;
     cefrLevel: string;
     wordCount: string | null;
+    audioUrl: string | null;
   } | null;
   options: Array<{
     optionId: string;

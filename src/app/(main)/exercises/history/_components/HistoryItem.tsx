@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { BookOpen, PenLine, Mic, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Headphones,
+  Mic,
+  PenLine,
+} from "lucide-react";
 import { cn } from "@/lib";
 import { ROUTES } from "@/config";
 import type { ExerciseHistoryItemDto } from "@/types";
@@ -27,6 +35,13 @@ const SKILL_CONFIG = {
     bg: "bg-orange-50",
     border: "border-l-orange-500",
     label: "SPEAKING",
+  },
+  listening: {
+    icon: Headphones,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+    border: "border-l-emerald-500",
+    label: "LISTENING",
   },
 } as const;
 

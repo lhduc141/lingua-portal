@@ -10,6 +10,7 @@ const SKILL_ICONS: Record<string, string> = {
   reading: "bg-teal-50",
   writing: "bg-violet-50",
   speaking: "bg-orange-50",
+  listening: "bg-emerald-50",
 };
 
 export function SkillSummarySection({ skillSummary }: SkillSummarySectionProps) {
@@ -17,7 +18,7 @@ export function SkillSummarySection({ skillSummary }: SkillSummarySectionProps) 
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="mb-5 font-serif text-[20px] text-gray-900">Skills Performance</h3>
       <div className="space-y-5">
-        {(["reading", "writing", "speaking"] as const).map((skill) => {
+        {(["reading", "writing", "speaking", "listening"] as const).map((skill) => {
           const data = skillSummary[skill];
           const cfg = SKILL_CONFIG[skill];
           const trend = TREND_CONFIG[data?.trend ?? "new"];

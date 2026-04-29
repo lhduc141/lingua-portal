@@ -14,6 +14,7 @@ export function ActivityItem({ item }: ActivityItemProps) {
   const { bg, icon } = cfg[item.type] ?? cfg.plan_item;
 
   const formatDate = (d: string) => {
+    // eslint-disable-next-line react-hooks/purity
     const diffH = Math.floor((Date.now() - new Date(d).getTime()) / 3600000);
     if (diffH < 1) return "Just now";
     if (diffH < 24) return `${diffH} hours ago`;

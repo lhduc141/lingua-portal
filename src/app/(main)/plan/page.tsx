@@ -14,7 +14,6 @@ import { resetPlan } from "@/services";
 import { useQueryClient } from "@tanstack/react-query";
 import { EmptyPlan, WeeklyReviewModal } from "./_components";
 import { DayCard } from "./_components/DayCard";
-import { ReviewCard } from "./_components/ReviewCard";
 import { PlanInsightBanner } from "./_components/PlanInsightBanner";
 
 const DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
@@ -27,22 +26,25 @@ type PlanDayShape = {
   tasks?: PlanTaskDto[];
 };
 
-// Luôn generate đủ MON–SUN của tuần hiện tại
-function buildFullWeek(startDate: string, days: PlanDayShape[]): PlanDayShape[] {
+// Vietnam timezone helper
+function toVNDateStr(date = new Date()): string {
+  const vn = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+  const y = vn.getFullYear();
+  const m = String(vn.getMonth() + 1).padStart(2, "0");
+  const d = String(vn.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function buildFullWeek(weekStartDate: string, days: PlanDayShape[]): PlanDayShape[] {
   const tasksByDate = new Map(days.map((d) => [d.date, d]));
   const result: PlanDayShape[] = [];
 
-  // Tìm Monday của tuần chứa startDate
-  const ref = new Date(startDate + "T12:00:00");
-  const dow = ref.getDay(); // 0=Sun
-  const daysToMonday = dow === 0 ? 6 : dow - 1;
-  const monday = new Date(ref);
-  monday.setDate(monday.getDate() - daysToMonday);
+  const monday = new Date(weekStartDate + "T12:00:00");
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = toVNDateStr(d);
     result.push(tasksByDate.get(dateStr) ?? { date: dateStr, day: i + 1, tasks: [] });
   }
   return result; // MON[0]...SUN[6]
@@ -59,7 +61,7 @@ export default function PlanPage() {
   const router = useRouter();
 
   const [reviewTask, setReviewTask] = useState<PlanTaskDto | null>(null);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = toVNDateStr();
 
   const handleComplete = (itemId: string) =>
     void updateMutation.mutate({ itemId, dto: { status: "completed" } });
@@ -68,6 +70,7 @@ export default function PlanPage() {
   const handleGenerate = async () => {
     try {
       await generateMutation.mutateAsync(undefined);
+      await queryClient.invalidateQueries({ queryKey: ["plan", "current"] });
     } catch (err: any) {
       console.error(err?.response?.data);
     }
@@ -104,11 +107,12 @@ export default function PlanPage() {
   } = data;
   const isPlanExpired = endDate && endDate < todayStr;
 
-  const fullWeek = buildFullWeek(startDate, days as PlanDayShape[]);
-  // SUN (index 6) = review day
-  const reviewDay = fullWeek[6];
-  // MON–SAT (index 0–5)
-  const regularDays = fullWeek.slice(0, 6);
+  const fullWeek = buildFullWeek((data as any).weekStartDate ?? startDate, days as PlanDayShape[]);
+  const reviewDay = fullWeek[6]; // SUN (index 6) = review day
+  const regularDays = fullWeek.slice(0, 7); // MON - SUN
+
+  const allPlanTasks = (days as PlanDayShape[]).flatMap((d) => d.tasks ?? []);
+  const weeklyReviewTask = allPlanTasks.find((t) => t.itemType === "weekly_review") ?? null;
 
   return (
     <>
@@ -195,22 +199,50 @@ export default function PlanPage() {
           </span>
         </div>
 
-        {/* ─── MAIN LAYOUT: Grid left + Right panel ─── */}
-        <div className="flex gap-4">
-          {/* LEFT: 3x2 day grid (MON–SAT) */}
-          <div className="flex-1">
-            <div className="grid grid-cols-3 gap-3">
-              {regularDays.map((planDay) => {
-                const dateObj = new Date(planDay.date + "T12:00:00");
-                const dayLabel = DAY_NAMES[dateObj.getDay()] ?? "MON";
-                const isToday = planDay.date === todayStr;
-                const isPast = planDay.date < todayStr;
-                const tasks = (planDay.tasks ?? []).filter((t) => t.itemType !== "weekly_review");
+        {/* ─── MAIN LAYOUT: 3 cols (MON-SAT) + 1 col (SUN + sidebar) ─── */}
+        <div className="grid grid-cols-4 items-start gap-3">
+          {/* LEFT 3 cols: MON–SAT (6 ngày, grid 3x2) */}
+          <div className="col-span-3 grid grid-cols-3 gap-3">
+            {regularDays.slice(0, 6).map((planDay) => {
+              const dateObj = new Date(planDay.date + "T12:00:00");
+              const dayLabel = DAY_NAMES[dateObj.getDay()] ?? "MON";
+              const isToday = planDay.date === todayStr;
+              const isPast = planDay.date < todayStr;
+              const tasks = (planDay.tasks ?? []).filter((t) => t.itemType !== "weekly_review");
 
+              return (
+                <DayCard
+                  key={planDay.date}
+                  date={planDay.date}
+                  dayLabel={dayLabel}
+                  isToday={isToday}
+                  isPast={isPast}
+                  tasks={tasks}
+                  onComplete={handleComplete}
+                  onSkip={handleSkip}
+                  onReviewClick={setReviewTask}
+                  isLoading={updateMutation.isPending}
+                  todayStr={todayStr}
+                />
+              );
+            })}
+          </div>
+
+          {/* RIGHT col: SUN DayCard + Weekly Review + PlanInsightBanner */}
+          <div className="flex flex-col gap-3">
+            {/* SUN DayCard */}
+            {regularDays[6] &&
+              (() => {
+                const sunDay = regularDays[6]!;
+                const dateObj = new Date(sunDay.date + "T12:00:00");
+                const dayLabel = DAY_NAMES[dateObj.getDay()] ?? "SUN";
+                const isToday = sunDay.date === todayStr;
+                const isPast = sunDay.date < todayStr;
+                const tasks = (sunDay.tasks ?? []).filter((t) => t.itemType !== "weekly_review");
                 return (
                   <DayCard
-                    key={planDay.date}
-                    date={planDay.date}
+                    key={sunDay.date}
+                    date={sunDay.date}
                     dayLabel={dayLabel}
                     isToday={isToday}
                     isPast={isPast}
@@ -222,18 +254,43 @@ export default function PlanPage() {
                     todayStr={todayStr}
                   />
                 );
-              })}
-            </div>
-          </div>
+              })()}
 
-          {/* RIGHT: Review card + Insight panel stacked */}
-          <div className="flex w-[260px] shrink-0 flex-col gap-3">
-            {/* SUN Review card */}
-            {reviewDay && (
-              <ReviewCard planDay={reviewDay} onReviewClick={setReviewTask} todayStr={todayStr} />
+            {/* Weekly Review card */}
+            {weeklyReviewTask && (
+              <div
+                onClick={() => setReviewTask(weeklyReviewTask)}
+                className="cursor-pointer rounded-2xl border border-teal-200 bg-teal-50/50 p-4 transition-all hover:shadow-md"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal-600">
+                    Weekly Review
+                  </span>
+                  {weeklyReviewTask.feedbackSubmittedAt ? (
+                    <span className="rounded-full bg-teal-100 px-2 py-0.5 text-[9px] font-bold text-teal-700">
+                      ✓ Done
+                    </span>
+                  ) : weeklyReviewTask.description ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">
+                      Ready
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold text-slate-400">
+                      Pending
+                    </span>
+                  )}
+                </div>
+                <p className="text-[12px] text-teal-700">
+                  {weeklyReviewTask.feedbackSubmittedAt
+                    ? "Feedback submitted. Ready for Week 2."
+                    : weeklyReviewTask.description
+                      ? "Your review is ready — tap to read."
+                      : "Complete this week to unlock your review."}
+                </p>
+              </div>
             )}
 
-            {/* Insight panel */}
+            {/* PlanInsightBanner: Let's go + Skill Focus */}
             {dashData && (
               <PlanInsightBanner
                 userName={user?.displayName?.split(" ")[0] ?? "there"}

@@ -4,4 +4,5 @@ export type PassageBrief = {
   content: string;
   cefrLevel: string | null;
   wordCount: string | null;
+  audioUrl: string | null;
 };
