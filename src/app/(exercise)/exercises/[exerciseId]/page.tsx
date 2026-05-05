@@ -11,6 +11,7 @@ import {
   ExerciseFooter,
   ExerciseHeader,
   FillBlankQuestion,
+  ListeningQuestion,
   MatchingQuestion,
   ReadingQuestion,
   SpeakingQuestion,
@@ -23,16 +24,16 @@ type UserAnswer = {
 };
 
 export default function ExercisePage() {
-  const params     = useParams();
-  const router     = useRouter();
+  const params = useParams();
+  const router = useRouter();
   const exerciseId = params.exerciseId as string;
 
-  const [exerciseData, setExerciseData]         = useState<ExerciseStartDto | null>(null);
+  const [exerciseData, setExerciseData] = useState<ExerciseStartDto | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers]                   = useState<Map<string, UserAnswer>>(new Map());
-  const [isSubmittingAll, setIsSubmittingAll]   = useState(false);
+  const [answers, setAnswers] = useState<Map<string, UserAnswer>>(new Map());
+  const [isSubmittingAll, setIsSubmittingAll] = useState(false);
 
-  const submitAnswerMutation  = useSubmitAnswer();
+  const submitAnswerMutation = useSubmitAnswer();
   const completeExerciseMutation = useCompleteExercise();
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function ExercisePage() {
   }
 
   const currentQuestion = exerciseData.questions[currentQuestionIndex];
-  const totalQuestions  = exerciseData.questions.length;
+  const totalQuestions = exerciseData.questions.length;
 
   if (!currentQuestion) {
     return (
@@ -110,17 +111,37 @@ export default function ExercisePage() {
     }
   };
 
-  // ── Audio player for listening skill ──────────────────────────────────
-  // Show audio player if current question has a passage with audioUrl.
-  // All questions in a listening item share the same passage/audio.
-  const audioUrl   = currentQuestion.passage?.audioUrl ?? null;
-  const transcript = currentQuestion.passage?.content ?? null;
+  // ── Audio detection ────────────────────────────────────────────────
+  // Có audioUrl → đây là câu listening
+  const audioUrl = currentQuestion.passage?.audioUrl ?? null;
   const audioTitle = currentQuestion.passage?.title ?? null;
+  // FIX: KHÔNG truyền transcript vào AudioPlayer trong lúc làm bài
+  // passage.content = full script → ẩn đi để user không đọc trước khi nghe
+  const transcript = null;
 
-  // ── Question renderer ─────────────────────────────────────────────────
+  // ── Question renderer ──────────────────────────────────────────────
   const renderQuestion = () => {
     const currentAnswer = answers.get(currentQuestion.questionId);
 
+    // LISTENING: có audioUrl → dùng ListeningQuestion cho tất cả types
+    if (audioUrl) {
+      return (
+        <ListeningQuestion
+          key={currentQuestion.questionId}
+          question={currentQuestion}
+          selectedOptionIds={currentAnswer?.optionIds ?? []}
+          onOptionChange={(optionIds) =>
+            handleAnswerChange(currentQuestion.questionId, { optionIds })
+          }
+          textAnswer={currentAnswer?.textAnswer ?? ""}
+          onTextChange={(text) =>
+            handleAnswerChange(currentQuestion.questionId, { textAnswer: text })
+          }
+        />
+      );
+    }
+
+    // NON-LISTENING: switch type như cũ
     switch (currentQuestion.type) {
       case "mcq_single":
       case "mcq_multi":
@@ -144,8 +165,7 @@ export default function ExercisePage() {
             onAnswerChange={(text) =>
               handleAnswerChange(currentQuestion.questionId, { textAnswer: text })
             }
-            // Only pass passage for reading (non-listening) fill_blank
-            passage={!audioUrl ? (currentQuestion.passage ?? null) : null}
+            passage={currentQuestion.passage ?? null}
           />
         );
 
@@ -196,12 +216,8 @@ export default function ExercisePage() {
       {isSubmittingAll && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
           <PawSpinner size="lg" />
-          <p className="mt-4 text-body-l font-medium text-teal-700">
-            Submitting your answers...
-          </p>
-          <p className="mt-1 text-body-m text-gray-500">
-            Please don&apos;t close this page
-          </p>
+          <p className="mt-4 text-body-l font-medium text-teal-700">Submitting your answers...</p>
+          <p className="mt-1 text-body-m text-gray-500">Please don&apos;t close this page</p>
         </div>
       )}
 
@@ -216,16 +232,8 @@ export default function ExercisePage() {
         questions={exerciseData.questions}
       />
 
-      {/* Question Content */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
-        {audioUrl && (
-          <AudioPlayer
-            audioUrl={audioUrl}
-            transcript={transcript}
-            title={audioTitle}
-          />
-        )}
-
+        {audioUrl && <AudioPlayer audioUrl={audioUrl} transcript={transcript} title={audioTitle} />}
         {renderQuestion()}
       </div>
 

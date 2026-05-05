@@ -22,7 +22,8 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
   } = answer;
 
   const isPending = gradingStatus !== "scored" && gradingStatus !== "auto_scored";
-  const isSubjective = questionType === "essay" || questionType === "speaking";
+  const isSubjective =
+    questionType === "essay" || questionType === "speaking" || questionType === "dictation";
 
   return (
     <div className="space-y-4 rounded-lg border bg-card p-6">

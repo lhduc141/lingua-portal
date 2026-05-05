@@ -2,6 +2,6 @@ export enum SkillName {
   READING = "reading",
   WRITING = "writing",
   SPEAKING = "speaking",
-  LISTENING = "learning",
+  LISTENING = "listening",
   ALL = "all",
 }
