@@ -9,6 +9,12 @@ const SKILL_CONFIG = {
     text: "text-orange-700",
     bg: "bg-orange-50",
   },
+  listening: {
+    label: "Listening",
+    bar: "bg-emerald-500",
+    text: "text-emerald-700",
+    bg: "bg-emerald-50",
+  },
 } as const;
 
 interface SkillPerformanceProps {

@@ -12,7 +12,7 @@ export type DashboardOverviewDto = {
     percentage: number;
   } | null;
 
-  skillSummary: Record<"reading" | "writing" | "speaking", SkillSummaryItem>;
+  skillSummary: Record<"reading" | "writing" | "speaking" | "listening", SkillSummaryItem>;
   streak: {
     currentDays: number;
     longestDays: number;
@@ -23,6 +23,6 @@ export type DashboardOverviewDto = {
   totalStudyMinutes: number;
   recentActivity: RecentActivityItem[];
 
-  lessonsCompleted: number; 
+  lessonsCompleted: number;
   practiceCompleted: number;
 };
