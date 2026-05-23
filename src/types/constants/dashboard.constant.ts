@@ -2,7 +2,7 @@ export const SKILL_CONFIG = {
   reading: { bar: "#3b82f6", label: "Reading" },
   writing: { bar: "#a022d7", label: "Writing" },
   speaking: { bar: "#f97316", label: "Speaking" },
-  listening: { bar: "#10b981", label: "Listening" },
+  // listening: { bar: "#10b981", label: "Listening" },
 } as const;
 
 export const TREND_CONFIG = {

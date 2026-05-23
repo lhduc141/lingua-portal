@@ -1,12 +1,20 @@
 "use client";
 
-import { CheckCircle2, Loader2, MessageSquare, XCircle } from "lucide-react";
-import type { CorrectionItem, ExerciseAnswerResultDto } from "@/types";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  TrendingUp,
+  XCircle,
+} from "lucide-react";
+import type { CorrectionItem, ExerciseAnswerResultDto, StyleImprovementItem } from "@/types";
+import { WritingFeedbackCard } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/WritingFeedbackCard";
 
-type QuestionResultCardProps = {
+interface QuestionResultCardProps {
   answer: ExerciseAnswerResultDto;
   index: number;
-};
+}
 
 export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
   const {
@@ -24,6 +32,20 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
   const isPending = gradingStatus !== "scored" && gradingStatus !== "auto_scored";
   const isSubjective =
     questionType === "essay" || questionType === "speaking" || questionType === "dictation";
+  const isEssay = questionType === "essay";
+
+  // Essay with feedback → full redesign layout
+  if (isEssay && aiFeedback && !isPending) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+        <WritingFeedbackCard
+          aiFeedback={aiFeedback}
+          userText={userAnswer?.textAnswer ?? ""}
+          stemText={stemText}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 rounded-lg border bg-card p-6">
@@ -40,7 +62,6 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
             </p>
           </div>
         </div>
-
         {isPending ? (
           <div className="flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -87,17 +108,18 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
       {userAnswer && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">Your answer:</p>
-
           {userAnswer.textAnswer && (
             <div className="rounded-lg bg-muted p-3">
               <p className="whitespace-pre-wrap text-sm">{userAnswer.textAnswer}</p>
             </div>
           )}
-
           {userAnswer.optionIds && userAnswer.optionIds.length > 0 && (
             <div className="space-y-1">
               {(userAnswer.optionTexts ?? userAnswer.optionIds).map((text: string, idx: number) => (
-                <div key={idx} className="flex items-center gap-2 rounded-lg bg-muted p-3 text-sm">
+                <div
+                  key={`opt-${idx}`}
+                  className="flex items-center gap-2 rounded-lg bg-muted p-3 text-sm"
+                >
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                   <span>{text}</span>
                 </div>
@@ -111,19 +133,17 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
       {!isSubjective && correctAnswer && !isPending && !isCorrect && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-green-600">Correct answer:</p>
-
           {correctAnswer.textAnswers && correctAnswer.textAnswers.length > 0 && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-sm text-green-700">{correctAnswer.textAnswers.join(" / ")}</p>
             </div>
           )}
-
           {correctAnswer.optionIds && correctAnswer.optionIds.length > 0 && (
             <div className="space-y-1">
               {(correctAnswer.optionTexts ?? correctAnswer.optionIds).map(
                 (text: string, idx: number) => (
                   <div
-                    key={idx}
+                    key={`correct-${idx}`}
                     className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700"
                   >
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -136,7 +156,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
         </div>
       )}
 
-      {/* AI Feedback */}
+      {/* AI Feedback — speaking/dictation simple view */}
       {aiFeedback && !isPending && (
         <div className="space-y-3 border-t pt-3">
           <div className="flex items-center gap-2 text-blue-600">
@@ -144,37 +164,36 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
             <p className="text-sm font-medium">AI Feedback</p>
           </div>
 
-          {aiFeedback.overallScore !== null && aiFeedback.overallScore !== undefined && (
+          {aiFeedback.overallScore !== null && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Overall score:</span>
               <span className="text-sm font-semibold">{aiFeedback.overallScore.toFixed(1)}/10</span>
             </div>
           )}
 
-          {aiFeedback.dimensions && aiFeedback.dimensions.length > 0 && (
+          {(aiFeedback.criterionBands ?? []).length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Detailed evaluation:</p>
-              {aiFeedback.dimensions.map((dim, idx: number) => (
+              {(aiFeedback.criterionBands ?? []).map((criterion, idx) => (
                 <div key={idx} className="space-y-1 rounded-lg bg-muted p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{dim.name}</span>
-                    {dim.score !== null && dim.score !== undefined && (
-                      <span className="text-sm text-muted-foreground">
-                        {dim.score.toFixed(1)}/10
-                      </span>
-                    )}
+                    <span className="text-sm font-medium">{criterion.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {criterion.internalScore.toFixed(1)}/10
+                    </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{dim.feedback}</p>
+                  <p className="text-sm text-muted-foreground">{criterion.summary}</p>
                 </div>
               ))}
             </div>
           )}
 
-          {aiFeedback.corrections && aiFeedback.corrections.length > 0 && (
+          {/* Genuine errors */}
+          {(aiFeedback.corrections ?? []).length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-orange-600">Errors to fix:</p>
               <ul className="space-y-2">
-                {aiFeedback.corrections.map((correction: CorrectionItem, idx: number) => (
+                {(aiFeedback.corrections ?? []).map((correction: CorrectionItem, idx: number) => (
                   <li key={idx} className="rounded-lg bg-orange-50 p-3 text-sm">
                     <div className="space-y-1">
                       <p>
@@ -182,9 +201,7 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
                         {" → "}
                         <span className="font-medium text-green-600">{correction.corrected}</span>
                       </p>
-                      {correction.rule && (
-                        <p className="text-xs text-orange-500">{correction.rule}</p>
-                      )}
+                      <p className="text-xs text-orange-500">{correction.explanation}</p>
                     </div>
                   </li>
                 ))}
@@ -192,14 +209,46 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
             </div>
           )}
 
-          {aiFeedback.suggestions && aiFeedback.suggestions.length > 0 && (
+          {/* Style improvements */}
+          {(aiFeedback.styleImprovements ?? []).length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-blue-600">Suggestions:</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-blue-500" />
+                  <p className="text-sm font-medium text-blue-700">Style Upgrades</p>
+                </div>
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
+                  optional
+                </span>
+              </div>
+              <ul className="space-y-2">
+                {(aiFeedback.styleImprovements ?? []).map(
+                  (item: StyleImprovementItem, idx: number) => (
+                    <li
+                      key={idx}
+                      className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm"
+                    >
+                      <div className="flex flex-wrap items-start gap-1.5">
+                        <span className="text-slate-400 line-through">{item.original}</span>
+                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-400" />
+                        <span className="font-medium text-blue-700">{item.improved}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-blue-500">{item.explanation}</p>
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          )}
+
+          {(aiFeedback.nextLevelGaps ?? []).length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-purple-600">Next level gaps:</p>
               <ul className="space-y-1">
-                {aiFeedback.suggestions.map((suggestion: string, idx: number) => (
+                {(aiFeedback.nextLevelGaps ?? []).map((gap: any, idx: number) => (
                   <li key={idx} className="flex gap-2 text-sm text-muted-foreground">
-                    <span className="text-blue-600">•</span>
-                    <span>{suggestion}</span>
+                    <span className="text-purple-600">•</span>
+                    <span>{typeof gap === "string" ? gap : (gap?.gap ?? gap?.text ?? "")}</span>
                   </li>
                 ))}
               </ul>

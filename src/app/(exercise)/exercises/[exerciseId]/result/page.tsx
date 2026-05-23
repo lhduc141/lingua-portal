@@ -50,7 +50,7 @@ export default function ExerciseResultPage() {
   const isStillGrading = result.status !== "scored";
 
   return (
-    <div className="container max-w-4xl space-y-8 py-8">
+    <div className="container max-w-24xl space-y-8 py-8">
       <ResultHeader result={result} />
 
       {isStillGrading && (

@@ -51,7 +51,7 @@ export const SKILL_OPTIONS = [
   { value: SkillName.READING, label: "Reading", icon: BookOpen },
   { value: SkillName.WRITING, label: "Writing", icon: PenLine },
   { value: SkillName.SPEAKING, label: "Speaking", icon: Mic },
-  { value: SkillName.LISTENING, label: "Listening", icon: Headphones },
+  // { value: SkillName.LISTENING, label: "Listening", icon: Headphones },
   { value: SkillName.ALL, label: "All Skills", icon: Zap },
 ];
 
@@ -103,7 +103,7 @@ export const DIFFICULTY_OPTIONS = [
   "Grammar",
   "Vocabulary",
   "Pronunciation",
-  "Listening",
+  // "Listening",
   "Writing",
   "Speaking",
 ];

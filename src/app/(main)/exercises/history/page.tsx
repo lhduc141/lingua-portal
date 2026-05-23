@@ -7,7 +7,7 @@ import type { ExerciseHistoryItemDto } from "@/types";
 import { HistoryFilters, HistoryItem, HistoryStatsBar } from "./_components";
 
 type RefTypeFilter = "all" | "lesson" | "question_set";
-type SkillFilter = "all" | "reading" | "writing" | "speaking" | "listening";
+type SkillFilter = "all" | "reading" | "writing" | "speaking" /* | "listening" */;
 
 const PAGE_SIZE = 10;
 

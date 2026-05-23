@@ -31,14 +31,14 @@ const SKILL_ICON = {
   reading: <BookOpen className="h-3.5 w-3.5" />,
   writing: <PenLine className="h-3.5 w-3.5" />,
   speaking: <Mic className="h-3.5 w-3.5" />,
-  listening: <Headphones className="h-3.5 w-3.5" />,
+  // listening: <Headphones className="h-3.5 w-3.5" />,
 };
 
 const SKILL_COLOR = {
   reading: "text-blue-600 bg-blue-50",
   writing: "text-violet-600 bg-violet-50",
   speaking: "text-orange-500 bg-orange-50",
-  listening: "text-emerald-600 bg-emerald-50",
+  // listening: "text-emerald-600 bg-emerald-50",
 };
 
 function toLocalDateStr(date = new Date()): string {
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                             task.skillName === "reading" && "bg-blue-100 text-blue-600",
                             task.skillName === "writing" && "bg-purple-100 text-purple-600",
                             task.skillName === "speaking" && "bg-orange-100 text-orange-600",
-                            task.skillName === "listening" && "bg-emerald-100 text-emerald-600"
+                            // task.skillName === "listening" && "bg-emerald-100 text-emerald-600"
                           )}
                         >
                           {task.skillName}
@@ -273,7 +273,7 @@ export default function DashboardPage() {
             <h3 className="font-serif text-[18px] text-gray-900">Skills Performance</h3>
           </div>
           <div className="flex-1 space-y-4">
-            {(["reading", "writing", "speaking", "listening"] as const).map((skill) => (
+            {(["reading", "writing", "speaking"/*, "listening"*/] as const).map((skill) => (
               <SkillBar key={skill} skill={skill} data={skillSummary[skill]} />
             ))}
           </div>
