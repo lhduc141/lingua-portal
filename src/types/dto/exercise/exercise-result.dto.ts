@@ -1,4 +1,4 @@
-// Response từ GET /assessments/:id/result (polling)
+// EXERCISE RESULT
 export type ExerciseResultDto = {
   exerciseRecordId: string;
   status: "in_progress" | "submitted" | "scored";
@@ -10,18 +10,31 @@ export type ExerciseResultDto = {
   answers: ExerciseAnswerResultDto[];
 };
 
-// AI FEEDBACK TYPES
+// PRONUNCIATION
+export type PronunciationWordResult = {
+  word: string;
+  accuracyScore: number;
+  errorType: string | null;
+};
+
+export type PronunciationScores = {
+  accuracyScore: number;
+  fluencyScore: number;
+  completenessScore: number;
+  prosodyScore?: number | null;
+  pronComposite: number;
+  estimatedBand: number;
+  words: PronunciationWordResult[];
+};
+
+// AI FEEDBACK BUILDING BLOCKS
 export type CorrectionItem = {
-  type:
-    | "grammar"
-    | "spelling"
-    | "punctuation"
-    | "formatting"
-    | "duplication";
+  type: "grammar" | "spelling" | "punctuation" | "formatting" | "duplication" | "vocabulary";
   original: string;
   corrected: string;
   explanation: string;
   severity: "low" | "medium" | "high";
+  rule?: string;
 };
 
 export type StyleImprovementItem = {
@@ -36,8 +49,8 @@ export type SubCriterionItem = {
   score: number;
   evidence: string[];
   diagnosis: string;
-  impact?: string; // optional — da bo khoi prompt moi
   howToImprove: string;
+  impact?: string;
 };
 
 export type CriterionBandItem = {
@@ -58,30 +71,47 @@ export type PriorityFixItem = {
   expectedImpact: string;
 };
 
+// AI FEEDBACK
 export type AiFeedbackDto = {
-  assessmentType: "writing_task_2" | "speaking" | "dictation";
+  // Assessment metadata
+  assessmentType: "writing_task_2" | "speaking" | "dictation" | string | null;
   currentLevel: string | null;
   targetLevel: string | null;
   currentBand: string | null;
   targetBand: string | null;
-  nextBandTarget: number | null;
+  currentCefrApproxBand: string | null;
+  nextCefrApproxBand: string | null;
+
+  // Word count (writing only)
   wordCount: number;
   wordCountStatus: string;
+
+  // Scores
   estimatedIeltsBand: number | null;
   internalScore: number;
   overallScore: number;
+  nextBandTarget: number | null;
   scoreConfidence: "low" | "medium" | "high";
   scoreRationale: string;
+
+  // Grading detail
   criterionBands: CriterionBandItem[];
   corrections: CorrectionItem[];
   styleImprovements: StyleImprovementItem[];
   priorityFixes: PriorityFixItem[];
   nextLevelGaps: string[];
   correctedText: string | null;
+
+  // Pronunciation (speaking only — từ Azure)
+  pronunciationScores: PronunciationScores | null;
   pronunciationConfidence: string | null;
+
+  // Legacy fields (backward compat — dictation/old format)
+  dimensions?: Array<{ name: string; score: number; feedback: string }>;
+  suggestions?: string[];
 };
 
-// EXERCISE ANSWER RESULT
+// ANSWER RESULT
 export type ExerciseAnswerResultDto = {
   questionId: string;
   questionType: string;

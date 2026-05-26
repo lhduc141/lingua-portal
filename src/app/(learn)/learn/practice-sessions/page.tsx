@@ -15,7 +15,7 @@ export default function PracticeSessionsPage() {
   const { user } = useAuthStore();
 
   const [skillFilter, setSkillFilter] = useState("");
-  const [cefrFilter, setCefrFilter] = useState(user?.cefrLevel ?? "");
+  const [cefrFilter, setCefrFilter] = useState("");
   const [search, setSearch] = useState("");
   const [pageIndex, setPageIndex] = useState(1);
   const [startingId, setStartingId] = useState<string | null>(null);

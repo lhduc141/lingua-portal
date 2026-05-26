@@ -1,4 +1,3 @@
-// Response từ POST /assessments/:id/complete
 export type ExerciseCompleteDto = {
   status: "scored" | "submitted";
   score: number | null;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCompleteExercise, useSubmitAnswer } from "@/hooks/exercise";
-import type { ExerciseStartDto } from "@/types/dto/exercise";
+import type { ExerciseStartDto, PronunciationScores } from "@/types/dto/exercise";
 import { ROUTES } from "@/config";
 import { PawSpinner } from "@/components/shared/spinner";
 import {
@@ -21,6 +21,7 @@ import {
 type UserAnswer = {
   optionIds?: string[];
   textAnswer?: string;
+  pronunciationScores?: PronunciationScores | null;
 };
 
 export default function ExercisePage() {
@@ -115,11 +116,8 @@ export default function ExercisePage() {
   // Có audioUrl → đây là câu listening
   const audioUrl = currentQuestion.passage?.audioUrl ?? null;
   const audioTitle = currentQuestion.passage?.title ?? null;
-  // FIX: KHÔNG truyền transcript vào AudioPlayer trong lúc làm bài
-  // passage.content = full script → ẩn đi để user không đọc trước khi nghe
   const transcript = null;
 
-  // ── Question renderer ──────────────────────────────────────────────
   const renderQuestion = () => {
     const currentAnswer = answers.get(currentQuestion.questionId);
 
@@ -184,11 +182,19 @@ export default function ExercisePage() {
       case "speaking":
         return (
           <SpeakingQuestion
-            key={currentQuestion.questionId}
             question={currentQuestion}
             textAnswer={currentAnswer?.textAnswer ?? ""}
             onAnswerChange={(text) =>
-              handleAnswerChange(currentQuestion.questionId, { textAnswer: text })
+              handleAnswerChange(currentQuestion.questionId, {
+                ...currentAnswer,
+                textAnswer: text,
+              })
+            }
+            onPronunciationScoresChange={(scores) =>
+              handleAnswerChange(currentQuestion.questionId, {
+                ...currentAnswer,
+                pronunciationScores: scores,
+              })
             }
           />
         );

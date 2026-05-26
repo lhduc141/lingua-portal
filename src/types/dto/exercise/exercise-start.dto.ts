@@ -22,7 +22,7 @@ export type ExerciseStartDto = {
 
 export type AssessmentQuestionDto = {
   questionId: string;
-  type: "mcq_single" | "mcq_multi" | "fill_blank" | "essay" | "speaking" | "matching" | "dictation"; 
+  type: "mcq_single" | "mcq_multi" | "fill_blank" | "essay" | "speaking" | "matching" | "dictation";
   position: number;
   maxScore: number;
   stemText: string | null;

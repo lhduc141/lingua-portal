@@ -8,8 +8,8 @@ const SKILL_FILTERS = [
   { value: "", label: "All Skills", activeClass: "bg-gray-700 text-white" },
   { value: "reading", label: "Reading", activeClass: "bg-blue-600 text-white" },
   { value: "writing", label: "Writing", activeClass: "bg-violet-600 text-white" },
-  // { value: "speaking", label: "Speaking", activeClass: "bg-orange-500 text-white" },
-  { value: "listening", label: "Listening", activeClass: "bg-sky-500 text-white" },
+  { value: "speaking", label: "Speaking", activeClass: "bg-orange-500 text-white" },
+  // { value: "listening", label: "Listening", activeClass: "bg-sky-500 text-white" },
 ] as const;
 
 const CEFR_FILTERS = [

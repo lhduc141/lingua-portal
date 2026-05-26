@@ -4,6 +4,7 @@ import {
   ExerciseHistoryItemDto,
   ExerciseResultDto,
   ExerciseStartDto,
+  PronunciationScores,
   ResponseDto,
   ResponsePagingDto,
   SubmitAnswerResponseDto,
@@ -50,11 +51,14 @@ export async function getExerciseHistory(params: {
   return api.get(ENDPOINTS.EXERCISE.HISTORY, { params });
 }
 
-export async function transcribeAudio(audioBlob: Blob): Promise<{ transcript: string }> {
+export async function transcribeAudio(audioBlob: Blob): Promise<{
+  transcript: string;
+  pronunciationScores: PronunciationScores | null;
+}> {
   const formData = new FormData();
   formData.append("audio", audioBlob, "recording.webm");
   const res = await api.post(ENDPOINTS.EXERCISE.TRANSCRIBE, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  return res.data
+  return res.data;
 }

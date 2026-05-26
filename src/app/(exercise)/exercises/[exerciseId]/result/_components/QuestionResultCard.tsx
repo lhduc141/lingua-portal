@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { CorrectionItem, ExerciseAnswerResultDto, StyleImprovementItem } from "@/types";
 import { WritingFeedbackCard } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/WritingFeedbackCard";
+import { SpeakingFeedbackCard } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/SpeakingFeedbackCard";
 
 interface QuestionResultCardProps {
   answer: ExerciseAnswerResultDto;
@@ -33,12 +34,25 @@ export function QuestionResultCard({ answer, index }: QuestionResultCardProps) {
   const isSubjective =
     questionType === "essay" || questionType === "speaking" || questionType === "dictation";
   const isEssay = questionType === "essay";
+  const isSpeaking = questionType === "speaking";
 
   // Essay with feedback → full redesign layout
   if (isEssay && aiFeedback && !isPending) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
         <WritingFeedbackCard
+          aiFeedback={aiFeedback}
+          userText={userAnswer?.textAnswer ?? ""}
+          stemText={stemText}
+        />
+      </div>
+    );
+  }
+
+  if (isSpeaking && aiFeedback && !isPending) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+        <SpeakingFeedbackCard
           aiFeedback={aiFeedback}
           userText={userAnswer?.textAnswer ?? ""}
           stemText={stemText}
