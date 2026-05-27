@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useCompleteExercise, useSubmitAnswer } from "@/hooks/exercise";
-import type { ExerciseStartDto, PronunciationScores } from "@/types/dto/exercise";
+import { useCompleteExercise, useSubmitAnswer, useSubmitSpeakingAnswer } from "@/hooks/exercise";
+import type { ExerciseStartDto } from "@/types/dto/exercise";
 import { ROUTES } from "@/config";
 import { PawSpinner } from "@/components/shared/spinner";
 import {
@@ -21,7 +21,7 @@ import {
 type UserAnswer = {
   optionIds?: string[];
   textAnswer?: string;
-  pronunciationScores?: PronunciationScores | null;
+  audioBlob?: Blob; // speaking only — gửi trực tiếp lên BE, không qua transcript
 };
 
 export default function ExercisePage() {
@@ -35,6 +35,7 @@ export default function ExercisePage() {
   const [isSubmittingAll, setIsSubmittingAll] = useState(false);
 
   const submitAnswerMutation = useSubmitAnswer();
+  const submitSpeakingAnswerMutation = useSubmitSpeakingAnswer();
   const completeExerciseMutation = useCompleteExercise();
 
   useEffect(() => {
@@ -88,10 +89,20 @@ export default function ExercisePage() {
     setIsSubmittingAll(true);
     try {
       for (const [questionId, answer] of answers.entries()) {
-        await submitAnswerMutation.mutateAsync({
-          exerciseId,
-          dto: { questionId, answer },
-        });
+        if (answer.audioBlob) {
+          // Speaking: upload audio → backend queue job → return ngay
+          await submitSpeakingAnswerMutation.mutateAsync({
+            exerciseId,
+            questionId,
+            audioBlob: answer.audioBlob,
+          });
+        } else {
+          // Non-speaking: submit DTO như cũ
+          await submitAnswerMutation.mutateAsync({
+            exerciseId,
+            dto: { questionId, answer },
+          });
+        }
       }
       await completeExerciseMutation.mutateAsync(exerciseId);
       router.push(ROUTES.EXERCISE.RESULT(exerciseId));
@@ -112,11 +123,17 @@ export default function ExercisePage() {
     }
   };
 
-  // ── Audio detection ────────────────────────────────────────────────
-  // Có audioUrl → đây là câu listening
   const audioUrl = currentQuestion.passage?.audioUrl ?? null;
   const audioTitle = currentQuestion.passage?.title ?? null;
   const transcript = null;
+
+  // hasAnswer cho speaking cần check audioBlob (không chỉ has() vì re-record set null)
+  const hasAnswer = (() => {
+    if (currentQuestion.type === "speaking") {
+      return !!answers.get(currentQuestion.questionId)?.audioBlob;
+    }
+    return answers.has(currentQuestion.questionId);
+  })();
 
   const renderQuestion = () => {
     const currentAnswer = answers.get(currentQuestion.questionId);
@@ -183,18 +200,8 @@ export default function ExercisePage() {
         return (
           <SpeakingQuestion
             question={currentQuestion}
-            textAnswer={currentAnswer?.textAnswer ?? ""}
-            onAnswerChange={(text) =>
-              handleAnswerChange(currentQuestion.questionId, {
-                ...currentAnswer,
-                textAnswer: text,
-              })
-            }
-            onPronunciationScoresChange={(scores) =>
-              handleAnswerChange(currentQuestion.questionId, {
-                ...currentAnswer,
-                pronunciationScores: scores,
-              })
+            onAudioReady={(blob) =>
+              handleAnswerChange(currentQuestion.questionId, blob ? { audioBlob: blob } : {})
             }
           />
         );
@@ -218,7 +225,6 @@ export default function ExercisePage() {
 
   return (
     <div className="relative flex h-screen flex-col bg-gray-50">
-      {/* Loading overlay */}
       {isSubmittingAll && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
           <PawSpinner size="lg" />
@@ -246,7 +252,7 @@ export default function ExercisePage() {
       <ExerciseFooter
         currentQuestion={currentQuestionIndex + 1}
         totalQuestions={totalQuestions}
-        hasAnswer={answers.has(currentQuestion.questionId)}
+        hasAnswer={hasAnswer}
         isLastQuestion={isLastQuestion}
         onPrevious={handlePrevious}
         onNext={handleNext}

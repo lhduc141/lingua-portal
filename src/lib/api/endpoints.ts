@@ -49,19 +49,18 @@ export const ENDPOINTS = {
     START_LESSON: `${EXERCISE_ROOT}/lesson/start`,
     START_PRACTICE: `${EXERCISE_ROOT}/question-set/start`,
     SUBMIT_ANSWER: (id: string) => `${EXERCISE_ROOT}/${id}/answers`,
+    SUBMIT_SPEAKING_ANSWER: (id: string) => `${EXERCISE_ROOT}/${id}/speaking-answer`,
     COMPLETE: (id: string) => `${EXERCISE_ROOT}/${id}/complete`,
     RESULT: (id: string) => `${EXERCISE_ROOT}/${id}/result`,
     HISTORY: `${EXERCISE_ROOT}/history`,
-
-    TRANSCRIBE: `${EXERCISE_ROOT}/transcribe`,
   },
 
   PLAN: {
     CURRENT: `${PLAN_ROOT}/current`,
     GENERATE: `${PLAN_ROOT}/generate`,
     HISTORY: `${PLAN_ROOT}/history`,
-    UPDATE_ITEM: (id: string) => `${PLAN_ROOT}/items/${id}`, // đổi từ COMPLETE_ITEM
-    REVIEW_FEEDBACK: (id: string) => `${PLAN_ROOT}/review/${id}/feedback`, // đổi path
+    UPDATE_ITEM: (id: string) => `${PLAN_ROOT}/items/${id}`,
+    REVIEW_FEEDBACK: (id: string) => `${PLAN_ROOT}/review/${id}/feedback`,
     RESET: `${PLAN_ROOT}/reset`,
   },
 
@@ -90,9 +89,5 @@ export const ENDPOINTS = {
     LESSONS: "/admin/lessons",
     UPDATE_LESSON_STATUS: (id: string) => `/admin/lessons/${id}/status`,
     PLACEMENT_SESSIONS: "/admin/placement-sessions",
-  },
-
-  ASSESSMENTS: {
-    TRANSCRIBE: "/assessments/transcribe", // ← THÊM
   },
 } as const;

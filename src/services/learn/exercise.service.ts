@@ -4,14 +4,12 @@ import {
   ExerciseHistoryItemDto,
   ExerciseResultDto,
   ExerciseStartDto,
-  PronunciationScores,
   ResponseDto,
   ResponsePagingDto,
   SubmitAnswerResponseDto,
   SubmitExerciseAnswerDto,
 } from "@/types";
 
-//TODO: Lesson Exercise Service
 export async function startLessonExercise(
   lessonId: string
 ): Promise<ResponseDto<ExerciseStartDto>> {
@@ -24,12 +22,30 @@ export async function startPracticeExercise(
   return api.post(ENDPOINTS.EXERCISE.START_PRACTICE, { questionSetId });
 }
 
-//TODO: Exercise Service
 export async function submitExerciseAnswer(
   exerciseId: string,
   dto: SubmitExerciseAnswerDto
 ): Promise<ResponseDto<SubmitAnswerResponseDto>> {
   return api.post(ENDPOINTS.EXERCISE.SUBMIT_ANSWER(exerciseId), dto);
+}
+
+/**
+ * Fire-and-forget speaking answer.
+ * Gửi audio blob lên backend → backend tự chạy Whisper + Azure + Groq async.
+ * FE không cần chờ — redirect sang result page ở chế độ pending.
+ */
+export async function submitSpeakingAnswer(
+  exerciseId: string,
+  questionId: string,
+  audioBlob: Blob
+): Promise<ResponseDto<SubmitAnswerResponseDto>> {
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "recording.webm");
+  formData.append("questionId", questionId);
+  const res = await api.post(ENDPOINTS.EXERCISE.SUBMIT_SPEAKING_ANSWER(exerciseId), formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 }
 
 export async function completeExercise(
@@ -49,16 +65,4 @@ export async function getExerciseHistory(params: {
   pageSize?: number;
 }): Promise<ResponsePagingDto<ExerciseHistoryItemDto>> {
   return api.get(ENDPOINTS.EXERCISE.HISTORY, { params });
-}
-
-export async function transcribeAudio(audioBlob: Blob): Promise<{
-  transcript: string;
-  pronunciationScores: PronunciationScores | null;
-}> {
-  const formData = new FormData();
-  formData.append("audio", audioBlob, "recording.webm");
-  const res = await api.post(ENDPOINTS.EXERCISE.TRANSCRIBE, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data;
 }
