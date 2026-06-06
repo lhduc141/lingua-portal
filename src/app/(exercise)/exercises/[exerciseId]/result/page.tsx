@@ -13,31 +13,26 @@ export default function ExerciseResultPage() {
 
   const { data, isLoading, error, refetch } = useExerciseResult(exerciseId);
 
-  // Handle retry
   const handleRetry = () => {
-    // Navigate back to lesson or practice session
-    // You might want to store refType/refId in localStorage or query params
     router.push("/learn/lessons");
   };
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="container max-w-4xl py-8">
+      <div className="w-full px-6 py-8">
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="space-y-4 text-center">
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Loading Result...</p>
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-600" />
+            <p className="text-sm text-slate-500">Loading Result...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error || !data?.data) {
     return (
-      <div className="container max-w-4xl py-8">
+      <div className="w-full px-6 py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>Could not load exercise results. Please try again.</AlertDescription>
@@ -50,7 +45,7 @@ export default function ExerciseResultPage() {
   const isStillGrading = result.status !== "scored";
 
   return (
-    <div className="container max-w-24xl space-y-8 py-8">
+    <div className="w-full space-y-8 px-6 py-8">
       <ResultHeader result={result} />
 
       {isStillGrading && (
@@ -63,7 +58,7 @@ export default function ExerciseResultPage() {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Question Details</h2>
+        <h2 className="text-xl font-semibold text-slate-800">Question Details</h2>
         {result.answers.map((answer, index) => (
           <QuestionResultCard key={answer.questionId} answer={answer} index={index} />
         ))}

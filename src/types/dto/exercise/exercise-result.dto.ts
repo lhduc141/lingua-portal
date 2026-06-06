@@ -71,6 +71,15 @@ export type PriorityFixItem = {
   expectedImpact: string;
 };
 
+// PARAGRAPH FEEDBACK — Writing Task 2 only
+export type ParagraphFeedbackItem = {
+  type: "introduction" | "body_1" | "body_2" | "body_3" | "conclusion";
+  openingSentence: string;
+  feedback: string;
+  strengths: string[];
+  improvements: string[];
+};
+
 // AI FEEDBACK
 export type AiFeedbackDto = {
   // Assessment metadata
@@ -102,9 +111,16 @@ export type AiFeedbackDto = {
   nextLevelGaps: string[];
   correctedText: string | null;
 
+  // Paragraph-level feedback (writing only)
+  paragraphFeedback?: ParagraphFeedbackItem[];
+
   // Pronunciation (speaking only — từ Azure)
   pronunciationScores: PronunciationScores | null;
   pronunciationConfidence: string | null;
+
+  validationWarnings?: string[];
+  requiresReview?: boolean;
+  reviewReason?: string | null;
 
   // Legacy fields (backward compat — dictation/old format)
   dimensions?: Array<{ name: string; score: number; feedback: string }>;

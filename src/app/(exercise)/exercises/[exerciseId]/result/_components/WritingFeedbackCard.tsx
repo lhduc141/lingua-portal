@@ -1,238 +1,67 @@
-import type { AiFeedbackDto, CorrectionItem, CriterionBandItem, SubCriterionItem } from "@/types";
+"use client";
+
+import type { AiFeedbackDto, ParagraphFeedbackItem } from "@/types";
 import { useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
   BarChart3,
   BookOpen,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   FileText,
   Lightbulb,
+  MessageSquare,
   Target,
   TrendingUp,
-  XCircle,
 } from "lucide-react";
+import { AnnotatedEssay } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/AnnotatedEssay";
+import { ParagraphFeedbackRow } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/ParagraphFeedbackRow";
+import { CriterionBandRow } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/CriterionBandRow";
 
-type AnnotatedSegment = {
-  text: string;
-  correction?: CorrectionItem;
+const SCORE_CONFIDENCE_BADGE: Record<string, { label: string; className: string }> = {
+  high: { label: "High confidence", className: "bg-green-50 text-green-700" },
+  medium: { label: "Medium confidence", className: "bg-amber-50 text-amber-700" },
+  low: { label: "Low confidence", className: "bg-red-50 text-red-700" },
 };
 
+function getScoreConfidenceBadge(confidence: string): { label: string; className: string } {
+  return SCORE_CONFIDENCE_BADGE[confidence] ?? SCORE_CONFIDENCE_BADGE["medium"]!;
+}
+
+function getSeverityColor(severity: string): string {
+  if (severity === "high") return "bg-red-50 border-red-200 text-red-700";
+  if (severity === "medium") return "bg-orange-50 border-orange-200 text-orange-700";
+  return "bg-yellow-50 border-yellow-200 text-yellow-700";
+}
+
 export function WritingFeedbackCard({
-                                      aiFeedback,
-                                      userText,
-                                      stemText,
-                                    }: {
+  aiFeedback,
+  userText,
+  stemText,
+}: {
   aiFeedback: AiFeedbackDto;
   userText: string;
   stemText: string | null;
 }) {
-  const SCORE_CONFIDENCE_BADGE: Record<string, { label: string; className: string }> = {
-    high:   { label: "High confidence",   className: "bg-green-50 text-green-700" },
-    medium: { label: "Medium confidence", className: "bg-amber-50 text-amber-700" },
-    low:    { label: "Low confidence",    className: "bg-red-50 text-red-700" },
-  };
+  const confidenceBadge = getScoreConfidenceBadge(aiFeedback.scoreConfidence);
+  const corrections = aiFeedback.corrections ?? [];
+  const hasCorrections = corrections.length > 0;
+  const paragraphFeedback = (aiFeedback.paragraphFeedback ?? []) as ParagraphFeedbackItem[];
+  const hasParagraphFeedback = paragraphFeedback.length > 0;
 
-  const confidenceBadge    = getScoreConfidenceBadge(aiFeedback.scoreConfidence);
-  const corrections        = aiFeedback.corrections ?? [];
-  const hasCorrections     = corrections.length > 0;
   const [showAllCorrections, setShowAllCorrections] = useState(false);
   const visibleCorrections = showAllCorrections ? corrections : corrections.slice(0, 3);
 
-  const nextBandLabel = aiFeedback.nextBandTarget != null
-    ? `Band ${aiFeedback.nextBandTarget}`
-    : null;
-
-  function AnnotatedEssay({ text, corrections }: { text: string; corrections: CorrectionItem[] }) {
-    const segments = buildAnnotatedSegments(text, corrections);
-    return (
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-        {segments.map((seg, idx) =>
-          seg.correction ? (
-            <span key={idx} className="group relative inline">
-              <span className="text-red-500 line-through">{seg.correction.original}</span>
-              <span className="ml-1 font-semibold uppercase text-green-600">
-                {seg.correction.corrected}
-              </span>
-            </span>
-          ) : (
-            <span key={idx}>{seg.text}</span>
-          )
-        )}
-      </p>
-    );
-  }
-
-  function buildAnnotatedSegments(text: string, corrections: CorrectionItem[]): AnnotatedSegment[] {
-    const segments: AnnotatedSegment[] = [];
-    let processed = 0;
-
-    const placed: { start: number; end: number }[] = [];
-    const validCorrections = corrections
-      .filter((c) => c.original && text.includes(c.original))
-      .sort((a, b) => text.indexOf(a.original) - text.indexOf(b.original))
-      .filter((c) => {
-        const start    = text.indexOf(c.original);
-        const end      = start + c.original.length;
-        const overlaps = placed.some((p) => start < p.end && end > p.start);
-        if (!overlaps) {
-          placed.push({ start, end });
-          return true;
-        }
-        return false;
-      });
-
-    for (const correction of validCorrections) {
-      const idx = text.indexOf(correction.original, processed);
-      if (idx === -1 || idx < processed) continue;
-      if (idx > processed) {
-        segments.push({ text: text.slice(processed, idx) });
-      }
-      segments.push({ text: correction.original, correction });
-      processed = idx + correction.original.length;
-    }
-    if (processed < text.length) {
-      segments.push({ text: text.slice(processed) });
-    }
-    return segments;
-  }
-
-  function getScoreConfidenceBadge(confidence: string): { label: string; className: string } {
-    return SCORE_CONFIDENCE_BADGE[confidence] ?? SCORE_CONFIDENCE_BADGE["medium"]!;
-  }
-
-  function getSeverityColor(severity: string): string {
-    if (severity === "high")   return "bg-red-50 border-red-200 text-red-700";
-    if (severity === "medium") return "bg-orange-50 border-orange-200 text-orange-700";
-    return "bg-yellow-50 border-yellow-200 text-yellow-700";
-  }
-
-  function getBandColor(band: number | null): string {
-    if (band === null) return "text-slate-400";
-    if (band >= 7)     return "text-green-600";
-    if (band >= 5)     return "text-amber-500";
-    return "text-red-500";
-  }
-
-  function getBandBarColor(band: number | null): string {
-    if (band === null) return "bg-slate-300";
-    if (band >= 7)     return "bg-green-500";
-    if (band >= 5)     return "bg-amber-500";
-    return "bg-red-500";
-  }
-
-  function SubCriteriaList({ subCriteria }: { subCriteria: SubCriterionItem[] }) {
-    return (
-      <div className="mt-3 space-y-3 border-t pt-3">
-        {subCriteria.map((sub, idx) => (
-          <div key={idx} className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-600">{sub.name}</span>
-              <span className={`text-xs font-semibold ${getBandColor(sub.score)}`}>
-                {sub.score.toFixed(1)}/10
-              </span>
-            </div>
-            <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  sub.score >= 7 ? "bg-green-500" : sub.score >= 5 ? "bg-amber-500" : "bg-red-500"
-                }`}
-                style={{ width: `${(sub.score / 10) * 100}%` }}
-              />
-            </div>
-            {(sub.evidence ?? []).length > 0 && (
-              <p className="rounded bg-slate-50 px-2 py-1 text-xs italic text-slate-500">
-                &quot;{sub.evidence[0]}&quot;
-              </p>
-            )}
-            <p className="text-xs text-slate-500">{sub.diagnosis}</p>
-            <p className="text-xs font-medium text-teal-700">→ {sub.howToImprove}</p>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  function CriterionBandRow({ criterion }: { criterion: CriterionBandItem }) {
-    const [expanded, setExpanded] = useState(false);
-    const band = criterion.bandEstimate;
-
-    return (
-      <div className="rounded-lg border border-slate-100 bg-white p-4">
-        <button
-          className="flex w-full items-start justify-between gap-3 text-left"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-700">{criterion.name}</span>
-              <div className="flex items-center gap-2">
-                {band !== null && (
-                  <span className={`font-mono text-sm font-bold ${getBandColor(band)}`}>
-                    {band.toFixed(1)}
-                  </span>
-                )}
-                {expanded ? (
-                  <ChevronUp className="h-4 w-4 text-slate-400" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
-                )}
-              </div>
-            </div>
-            {expanded && <p className="text-xs text-slate-500">{criterion.summary}</p>}
-          </div>
-        </button>
-
-        {expanded && (
-          <div className="mt-3 space-y-3">
-            {(criterion.strengths ?? []).length > 0 && (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
-                  Strengths
-                </p>
-                {criterion.strengths.map((s, i) => (
-                  <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                    <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
-                    {s}
-                  </p>
-                ))}
-              </div>
-            )}
-            {(criterion.weaknesses ?? []).length > 0 && (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-red-500">
-                  Weaknesses
-                </p>
-                {criterion.weaknesses.map((w, i) => (
-                  <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                    <XCircle className="mt-0.5 h-3 w-3 shrink-0 text-red-400" />
-                    {w}
-                  </p>
-                ))}
-              </div>
-            )}
-            {(criterion.subCriteria ?? []).length > 0 && (
-              <SubCriteriaList subCriteria={criterion.subCriteria ?? []} />
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const nextBandLabel =
+    aiFeedback.nextBandTarget != null ? `Band ${aiFeedback.nextBandTarget}` : null;
 
   return (
     <div className="space-y-6">
-
       {/* BAND SCORE HEADER */}
       <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-purple-600">
             Writing Feedback
           </p>
-
-          {/* [FIX] Dung nextBandTarget cho IELTS progression, khong dung targetBand */}
           <div className="flex items-center gap-3">
             {aiFeedback.currentBand && (
               <>
@@ -250,7 +79,6 @@ export function WritingFeedbackCard({
               </>
             )}
           </div>
-
           {aiFeedback.wordCountStatus && (
             <p className="text-xs text-slate-500">{aiFeedback.wordCountStatus}</p>
           )}
@@ -271,10 +99,8 @@ export function WritingFeedbackCard({
 
       {/* 2-COLUMN BODY */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[55%_42%]">
-
         {/* LEFT COLUMN */}
         <div className="space-y-4">
-
           {stemText && (
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
@@ -330,7 +156,7 @@ export function WritingFeedbackCard({
                       <p className="text-sm line-through opacity-60">{c.original}</p>
                       <div className="flex items-start gap-1.5">
                         <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-50" />
-                        <p className="text-sm font-semibold uppercase">{c.corrected}</p>
+                        <p className="text-sm font-semibold">{c.corrected}</p>
                       </div>
                     </div>
                     <p className="mt-2 text-xs opacity-70">{c.explanation}</p>
@@ -349,18 +175,29 @@ export function WritingFeedbackCard({
             </div>
           )}
 
-          {/* [FIX] Dung nextBandLabel thay vi targetBand cho label */}
+          {hasParagraphFeedback && (
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-purple-600" />
+                <p className="text-sm font-semibold text-slate-700">Paragraph Breakdown</p>
+              </div>
+              <div className="space-y-2">
+                {paragraphFeedback.map((item) => (
+                  <ParagraphFeedbackRow key={item.type} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {aiFeedback.correctedText && (
             <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-teal-600" />
                 <p className="text-sm font-semibold text-teal-700">
                   Corrected Version
-                  {nextBandLabel && (
-                    <span className="ml-1 font-normal text-teal-500">
-                        ({nextBandLabel} level)
-                    </span>
-                  )}
+                  {/*{nextBandLabel && (*/}
+                  {/*  <span className="ml-1 font-normal text-teal-500">({nextBandLabel} level)</span>*/}
+                  {/*)}*/}
                 </p>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-teal-800">
@@ -372,7 +209,6 @@ export function WritingFeedbackCard({
 
         {/* RIGHT COLUMN */}
         <div className="space-y-4">
-
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="mb-3 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-purple-600" />
@@ -380,7 +216,7 @@ export function WritingFeedbackCard({
             </div>
             <div className="space-y-2">
               {(aiFeedback.criterionBands ?? []).map((criterion, idx) => (
-                <CriterionBandRow key={idx} criterion={criterion} />
+                <CriterionBandRow key={criterion.name ?? idx} criterion={criterion} />
               ))}
             </div>
           </div>
@@ -410,7 +246,6 @@ export function WritingFeedbackCard({
             </div>
           )}
 
-          {/* [FIX] Dung nextBandLabel thay vi targetBand cho title "To Band X" */}
           {(aiFeedback.nextLevelGaps ?? []).length > 0 && (
             <div className="rounded-lg border border-purple-100 bg-purple-50 p-4">
               <div className="mb-3 flex items-center gap-2">
@@ -418,9 +253,7 @@ export function WritingFeedbackCard({
                 <p className="text-sm font-semibold text-purple-700">
                   Next Level Gaps
                   {nextBandLabel && (
-                    <span className="ml-1 font-normal text-purple-500">
-                      (To {nextBandLabel})
-                    </span>
+                    <span className="ml-1 font-normal text-purple-500">(To {nextBandLabel})</span>
                   )}
                 </p>
               </div>

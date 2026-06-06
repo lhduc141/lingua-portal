@@ -129,12 +129,6 @@ export function PronunciationDetail({ scores, onSpeak }: PronunciationDetailProp
           No significant mispronunciations detected in content words.
         </p>
       )}
-
-      <p className="text-[11px] text-orange-500">
-        Estimated IELTS Pronunciation Band:{" "}
-        <span className="font-semibold">{scores.estimatedBand.toFixed(1)}</span> — assessed via
-        Azure Speech SDK, not official IELTS scoring.
-      </p>
     </div>
   );
 }
