@@ -162,12 +162,17 @@ function LegacyFormatPanel({ item }: { item: LegacyParagraphFeedbackItem }) {
               <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
                 Strengths
               </p>
-              {item.strengths.map((s, i) => (
-                <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                  <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
-                  {s}
-                </p>
-              ))}
+              {(item.strengths ?? []).map(
+                (
+                  s,
+                  i // ← thêm ?? []
+                ) => (
+                  <p key={i} className="flex gap-1.5 text-xs text-slate-600">
+                    <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
+                    {s}
+                  </p>
+                )
+              )}
             </div>
           )}
           {(item.improvements ?? []).length > 0 && (
@@ -175,12 +180,17 @@ function LegacyFormatPanel({ item }: { item: LegacyParagraphFeedbackItem }) {
               <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
                 How to improve
               </p>
-              {item.improvements.map((imp, i) => (
-                <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                  <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
-                  {imp}
-                </p>
-              ))}
+              {(item.improvements ?? []).map(
+                (
+                  imp,
+                  i // ← thêm ?? []
+                ) => (
+                  <p key={i} className="flex gap-1.5 text-xs text-slate-600">
+                    <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
+                    {imp}
+                  </p>
+                )
+              )}
             </div>
           )}
         </div>
