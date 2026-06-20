@@ -72,13 +72,25 @@ export type PriorityFixItem = {
 };
 
 // PARAGRAPH FEEDBACK — Writing Task 2 only
-export type ParagraphFeedbackItem = {
-  type: "introduction" | "body_1" | "body_2" | "body_3" | "conclusion";
+export type NewParagraphFeedbackItem = {
+  type: 'introduction' | 'body_1' | 'body_2' | 'body_3' | 'conclusion';
+  title: string;
   openingSentence: string;
-  feedback: string;
-  strengths: string[];
-  improvements: string[];
+  taskAchievement: string;
+  coherenceCohesion: string;
+  lexicalResource: string;
+  grammarAccuracy: string;
 };
+
+export type LegacyParagraphFeedbackItem = {
+  type: 'introduction' | 'body_1' | 'body_2' | 'body_3' | 'conclusion';
+  openingSentence?: string;
+  feedback?: string;
+  strengths?: string[];
+  improvements?: string[];
+};
+
+export type ParagraphFeedbackItem = NewParagraphFeedbackItem | LegacyParagraphFeedbackItem;
 
 // AI FEEDBACK
 export type AiFeedbackDto = {

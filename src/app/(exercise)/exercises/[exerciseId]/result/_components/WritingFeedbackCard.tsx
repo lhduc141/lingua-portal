@@ -9,12 +9,10 @@ import {
   BookOpen,
   FileText,
   Lightbulb,
-  MessageSquare,
   Target,
   TrendingUp,
 } from "lucide-react";
-import { AnnotatedEssay } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/AnnotatedEssay";
-import { ParagraphFeedbackRow } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/ParagraphFeedbackRow";
+import { EssayWithInlineFeedback } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/EssayWithInlineFeedback";
 import { CriterionBandRow } from "@/app/(exercise)/exercises/[exerciseId]/result/_components/CriterionBandRow";
 
 const SCORE_CONFIDENCE_BADGE: Record<string, { label: string; className: string }> = {
@@ -46,7 +44,6 @@ export function WritingFeedbackCard({
   const corrections = aiFeedback.corrections ?? [];
   const hasCorrections = corrections.length > 0;
   const paragraphFeedback = (aiFeedback.paragraphFeedback ?? []) as ParagraphFeedbackItem[];
-  const hasParagraphFeedback = paragraphFeedback.length > 0;
 
   const [showAllCorrections, setShowAllCorrections] = useState(false);
   const visibleCorrections = showAllCorrections ? corrections : corrections.slice(0, 3);
@@ -110,14 +107,20 @@ export function WritingFeedbackCard({
             </div>
           )}
 
+          {/* Essay + inline paragraph feedback */}
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <div className="mb-3 flex items-center gap-2">
               <FileText className="h-4 w-4 text-purple-600" />
               <p className="text-sm font-semibold text-slate-700">Your Essay</p>
             </div>
-            <AnnotatedEssay text={userText} corrections={corrections} />
+            <EssayWithInlineFeedback
+              text={userText}
+              corrections={corrections}
+              paragraphFeedback={paragraphFeedback}
+            />
           </div>
 
+          {/* Errors Found */}
           {hasCorrections && (
             <div className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="mb-3 flex items-center justify-between">
@@ -175,30 +178,12 @@ export function WritingFeedbackCard({
             </div>
           )}
 
-          {hasParagraphFeedback && (
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-purple-600" />
-                <p className="text-sm font-semibold text-slate-700">Paragraph Breakdown</p>
-              </div>
-              <div className="space-y-2">
-                {paragraphFeedback.map((item) => (
-                  <ParagraphFeedbackRow key={item.type} item={item} />
-                ))}
-              </div>
-            </div>
-          )}
-
+          {/* Corrected Version */}
           {aiFeedback.correctedText && (
             <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-teal-600" />
-                <p className="text-sm font-semibold text-teal-700">
-                  Corrected Version
-                  {/*{nextBandLabel && (*/}
-                  {/*  <span className="ml-1 font-normal text-teal-500">({nextBandLabel} level)</span>*/}
-                  {/*)}*/}
-                </p>
+                <p className="text-sm font-semibold text-teal-700">Corrected Version</p>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-teal-800">
                 {aiFeedback.correctedText}
@@ -272,7 +257,7 @@ export function WritingFeedbackCard({
             <div className="rounded-lg border border-teal-100 bg-teal-50 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <Lightbulb className="h-4 w-4 text-teal-600" />
-                <p className="text-sm font-semibold text-teal-700">Suggestions for Review</p>
+                <p className="text-sm font-semibold text-teal-700">Nhận xét tổng thể</p>
               </div>
               <p className="text-xs text-teal-600">{aiFeedback.scoreRationale}</p>
             </div>
