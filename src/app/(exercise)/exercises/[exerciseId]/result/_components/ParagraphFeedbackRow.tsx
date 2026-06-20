@@ -1,6 +1,6 @@
 import type { ParagraphFeedbackItem } from "@/types";
 import { useState } from "react";
-import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const PARAGRAPH_TYPE_LABEL: Record<string, string> = {
   introduction: "Introduction",
@@ -43,37 +43,37 @@ export function ParagraphFeedbackRow({ item }: { item: ParagraphFeedbackItem }) 
             </p>
           )}
 
-          {item.feedback && (
-            <p className="text-xs leading-relaxed text-slate-600">{item.feedback}</p>
-          )}
+          {/*{item.feedback && (*/}
+          {/*  <p className="text-xs leading-relaxed text-slate-600">{item.feedback}</p>*/}
+          {/*)}*/}
 
-          {(item.strengths ?? []).length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
-                Strengths
-              </p>
-              {item.strengths.map((s, i) => (
-                <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                  <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />
-                  {s}
-                </p>
-              ))}
-            </div>
-          )}
+          {/*{(item.strengths ?? []).length > 0 && (*/}
+          {/*  <div className="space-y-1">*/}
+          {/*    <p className="text-xs font-semibold uppercase tracking-wider text-green-600">*/}
+          {/*      Strengths*/}
+          {/*    </p>*/}
+          {/*    {item.strengths.map((s, i) => (*/}
+          {/*      <p key={i} className="flex gap-1.5 text-xs text-slate-600">*/}
+          {/*        <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-green-500" />*/}
+          {/*        {s}*/}
+          {/*      </p>*/}
+          {/*    ))}*/}
+          {/*  </div>*/}
+          {/*)}*/}
 
-          {(item.improvements ?? []).length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
-                How to improve
-              </p>
-              {item.improvements.map((imp, i) => (
-                <p key={i} className="flex gap-1.5 text-xs text-slate-600">
-                  <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
-                  {imp}
-                </p>
-              ))}
-            </div>
-          )}
+          {/*{(item.improvements ?? []).length > 0 && (*/}
+          {/*  <div className="space-y-1">*/}
+          {/*    <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">*/}
+          {/*      How to improve*/}
+          {/*    </p>*/}
+          {/*    {item.improvements.map((imp, i) => (*/}
+          {/*      <p key={i} className="flex gap-1.5 text-xs text-slate-600">*/}
+          {/*        <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />*/}
+          {/*        {imp}*/}
+          {/*      </p>*/}
+          {/*    ))}*/}
+          {/*  </div>*/}
+          {/*)}*/}
         </div>
       )}
     </div>
