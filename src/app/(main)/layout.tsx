@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
 import { OnboardingStatus } from "@/types";
-import { Header, Sidebar } from "@/components";
+import { Header, PawSpinner, Sidebar } from "@/components";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -29,6 +29,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       return;
     }
   }, [user, isLoading, router]);
+
+  if (isLoading) return <PawSpinner fullScreen />;
 
   if (
     isLoading ||

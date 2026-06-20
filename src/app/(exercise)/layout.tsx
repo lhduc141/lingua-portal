@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config/routes";
 import { OnboardingStatus } from "@/types";
+import { PawSpinner } from "@/components";
 
 export default function AssessmentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -26,7 +27,8 @@ export default function AssessmentLayout({ children }: { children: React.ReactNo
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user) return null;
+  if (isLoading) return <PawSpinner fullScreen />;
+  if (!user) return null;
 
   return <>{children}</>;
 }

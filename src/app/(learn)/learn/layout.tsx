@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores";
 import { ROUTES } from "@/config";
 import { OnboardingStatus } from "@/types";
 import { Sidebar } from "@/components/shared/layouts";
+import { PawSpinner } from "@/components";
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
     }
   }, [user, isLoading, router]);
 
+  if (isLoading) return <PawSpinner fullScreen />;
   if (
     isLoading ||
     user?.surveyStatus === OnboardingStatus.PENDING ||

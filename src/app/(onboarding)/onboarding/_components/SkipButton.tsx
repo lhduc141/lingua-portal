@@ -6,7 +6,13 @@ import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/stores";
 import { OnboardingStatus } from "@/types";
 import { api, ENDPOINTS } from "@/lib/api";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function SkipButton() {
   const router = useRouter();
